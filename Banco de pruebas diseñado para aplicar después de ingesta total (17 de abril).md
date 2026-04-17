@@ -8,7 +8,19 @@ date: 2026-04-17
 ## Test 0 - predefined queries
 
 ### Main nodes (UI)
+Febrero
+```Sql
+SELECT ?node ?label ?location 
+WHERE { 
+  ?node <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.wikidata.org/entity/Q108163> . 
+  ?node <http://www.wikidata.org/entity/P1476> ?label . 
+  OPTIONAL { ?node <http://www.wikidata.org/entity/P131> ?location } 
+} 
+ORDER BY ?label 
+LIMIT 30
+```
 
+17 de Abril
 ```Sparql
 SELECT ?node ?label ?location
 WHERE {
@@ -184,16 +196,52 @@ LIMIT 30
 ### Main nodes (Server)
 
 ```bash
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+# Load credentials from your local secret storage before running:
+# export UBXAT_USER='...'; export UBXAT_PASSWORD='...'
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
-    "query": "SELECT ?node ?label ?location WHERE { ?node <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.wikidata.org/entity/Q108163> . ?node <http://www.wikidata.org/entity/P1476> ?label . OPTIONAL { ?node <http://www.wikidata.org/entity/P131> ?location } } ORDER BY ?label LIMIT 30",
+    "query": "SELECT ?node ?label ?location WHERE { ?node <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.wikidata.org/entity/Q108163> . ?node <http://www.wikidata.org/entity/P1476> ?label . OPTIONAL { ?node <http://www.wikidata.org/entity/P131> ?location } } ORDER BY ?label",
     "format": "json"
   }'
 ```
+
+```
+Request ID: 1d1ee8f3-a9a4-4a74-be1c-33411cac64ee
+{"error":"ERROR_RESOURCE_EXHAUSTED","details":{"title":"High Load","detail":"We're experiencing high demand for Composer 2 right now. Please switch to Auto, another model, or try again in a few moments.","isRetryable":true,"additionalInfo":{},"buttons":[],"planChoices":[]},"isExpected":true}
+[resource_exhausted] Error
+lae: [resource_exhausted] Error
+    at Bz_ (vscode-file://vscode-app/Applications/Cursor.app/Contents/Resources/app/out/vs/workbench/workbench.desktop.main.js:28907:24637)
+    at Nz_ (vscode-file://vscode-app/Applications/Cursor.app/Contents/Resources/app/out/vs/workbench/workbench.desktop.main.js:28907:23543)
+    at Wz_ (vscode-file://vscode-app/Applications/Cursor.app/Contents/Resources/app/out/vs/workbench/workbench.desktop.main.js:28908:6487)
+    at h6u.run (vscode-file://vscode-app/Applications/Cursor.app/Contents/Resources/app/out/vs/workbench/workbench.desktop.main.js:28908:11285)
+    at async vDn.runAgentLoop (vscode-file://vscode-app/Applications/Cursor.app/Contents/Resources/app/out/vs/workbench/workbench.desktop.main.js:41216:11960)
+    at async zkd.streamFromAgentBackend (vscode-file://vscode-app/Applications/Cursor.app/Contents/Resources/app/out/vs/workbench/workbench.desktop.main.js:41286:12151)
+    at async zkd.getAgentStreamResponse (vscode-file://vscode-app/Applications/Cursor.app/Contents/Resources/app/out/vs/workbench/workbench.desktop.main.js:41286:18486)
+    at async B3e.submitChatMaybeAbortCurrent (vscode-file://vscode-app/Applications/Cursor.app/Contents/Resources/app/out/vs/workbench/workbench.desktop.main.js:29014:16809)
+```
+#### Results:
+```Json
+
+```
+
 ### People (UI)
+Febrero
+```sparql
+SELECT ??label ?birth ?de node death
+WHERE { 
+  ?node <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.wikidata.org/entity/Q5> . 
+  ?node <http://www.wikidata.org/entity/P1476> ?label . 
+  OPTIONAL { ?node <http://www.wikidata.org/entity/P569> ?birth } 
+  OPTIONAL { ?node <http://www.wikidata.org/entity/P570> ?death } 
+} 
+ORDER BY ?label 
+LIMIT 30
+```
+
+Abril
 ```Sparql
 SELECT ?node ?label ?birth ?death
 WHERE {
@@ -399,10 +447,13 @@ Second:
 > Same label = node ❓
 > Some present Null - is this from the original database or is the data lost? ☝️ > Miquel
 > 
+> Esta pide hasta 30 humanos (Q5) con su título, y opcionalmente sus fechas de nacimiento y muerte, ordenadas por el título. Sintácticamente es correcta, pero la propiedad título corresponde a  “published name of artwork”. Esta propiedad no aplica para los humanos (menos para fechas de nacimiento o muerte), hay algún proceso de normalización que genere la relación entre autores de obras (en la BD de censura) y la de Fosas Comunes que, por ejemplo sí tiene esto relacionado con los humanos?.  
+
+Una observación más es que la respuesta a esta query es igual a la anterior, arroja los mismos datos?.
 
 ### People (Server)
-```
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+```Sparql
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -413,6 +464,19 @@ curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
 ```
 
 ### Mass graves (UI)
+Febrero
+```sparql
+SELECT ?node ?label ?location 
+WHERE { 
+  ?node <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.wikidata.org/entity/Q108163> . 
+  ?node <http://www.wikidata.org/entity/P1476> ?label . 
+  OPTIONAL { ?node <http://www.wikidata.org/entity/P131> ?location } 
+} 
+ORDER BY ?label 
+LIMIT 30
+```
+
+Abril
 ```Sparql
 SELECT ?node ?label ?location
 WHERE {
@@ -6659,7 +6723,7 @@ Response without limit
 ### Mass graves (Server)
 
 ```
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -6669,6 +6733,17 @@ curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
   }'
 ```
 ### Statistics (UI)
+Febrero
+```sql
+SELECT (COUNT(?person) AS ?peopleCount) (COUNT(?grave) AS ?gravesCount) (COUNT(?doc) AS ?docsCount) 
+WHERE { 
+  OPTIONAL { ?person <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.wikidata.org/entity/Q5> } 
+  OPTIONAL { ?grave <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.wikidata.org/entity/Q108163> } 
+  OPTIONAL { ?doc <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.wikidata.org/entity/Q49848> } 
+}
+```
+
+Abril
 ```Sparql
 SELECT ?type (COUNT(DISTINCT ?entity) AS ?count)
 WHERE {
@@ -6686,6 +6761,9 @@ WHERE {
 GROUP BY ?type
 ORDER BY ?type
 ```
+
+> Q108163 > preposition > Miquel
+> 
 
 First time
 ```Json
@@ -12805,7 +12883,7 @@ Screen:
 
 ### Statistics (Server)
 ```
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -12816,7 +12894,18 @@ curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
 ```
 
 ### Entity Types (UI)
+Febrero
+```Sparql
+SELECT DISTINCT ?type (COUNT(?node) AS ?count) 
+WHERE { 
+  ?node <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?type . 
+} 
+GROUP BY ?type 
+ORDER BY DESC(?count) 
+LIMIT 20
+```
 
+Abril
 ```Sparql
 SELECT DISTINCT ?type (COUNT(?node) AS ?count)
 WHERE {
@@ -12862,7 +12951,7 @@ LIMIT 20
 
 ### Entity Types (Server)
 ```
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -12874,7 +12963,7 @@ curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
 
 ## Summary: 
 
-Are the queries the same than the versions from lasts revisions? [[]]
+Are the queries the same than the versions from lasts revisions? - Statistics changed
 
 
 ## Test 1 – Total number of nodes 
@@ -12910,7 +12999,7 @@ WHERE {
 
 ### Server:
 ```
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -12948,7 +13037,7 @@ WHERE {
 
 ### Server:
 ```
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -12989,7 +13078,7 @@ ORDER BY ?label
 
 ### Server:
 ```
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -13026,7 +13115,7 @@ WHERE {
 ```
 ### Server:
 ```
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -13301,7 +13390,7 @@ WHERE {
 
 ##### Server (SPARQL via API)
 ```bash
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -13341,7 +13430,7 @@ LIMIT 50
 
 ##### Server (SPARQL via API)
 ```bash
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -13377,7 +13466,7 @@ OFFSET 0
 
 ##### Server (SPARQL via API)
 ```bash
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -13412,7 +13501,7 @@ WHERE {
 
 ##### Server (SPARQL via API)
 ```bash
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -13447,7 +13536,7 @@ WHERE {
 
 ##### Server (SPARQL via API)
 ```bash
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -13491,7 +13580,7 @@ WHERE {
 
 ##### Server (SPARQL via API)
 ```bash
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -13528,7 +13617,7 @@ WHERE {
 
 ##### Server (SPARQL via API)
 ```bash
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -13575,7 +13664,7 @@ WHERE {
 
 ##### Server (SPARQL via API)
 ```bash
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -13617,7 +13706,7 @@ WHERE {
 
 ##### Server (SPARQL via API)
 ```bash
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -13665,7 +13754,7 @@ LIMIT 50
 
 ##### Server (SPARQL via API)
 ```bash
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -13710,7 +13799,7 @@ OFFSET 0
 
 ##### Server (SPARQL via API)
 ```bash
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -13758,7 +13847,7 @@ LIMIT 20
 
 ##### Server (SPARQL via API)
 ```bash
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -13814,7 +13903,7 @@ WHERE {
 
 ##### Server (SPARQL via API)
 ```bash
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -14001,7 +14090,7 @@ ORDER BY DESC(?count)
 
 #### Server (API)
 ```bash
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -14037,7 +14126,7 @@ WHERE {
 
 #### Server (API)
 ```bash
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -14066,7 +14155,7 @@ LIMIT 100
 
 #### Server (API)
 ```bash
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -14100,7 +14189,7 @@ WHERE {
 
 #### Server (API)
 ```bash
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -14127,7 +14216,7 @@ WHERE {
 
 #### Server (API)
 ```bash
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -14156,7 +14245,7 @@ LIMIT 100
 
 #### Server (API)
 ```bash
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
@@ -14184,7 +14273,7 @@ LIMIT 100
 
 #### Server (API)
 ```bash
-curl -u 'ubxat:BLI-u24KH%36xM9gQ9PzX' \
+curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
