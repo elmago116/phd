@@ -1,26 +1,9 @@
----
-tags:
-  - op/test
-date: 2026-04-17
----
 # 1. Server - via API - UI
 
 ## Test 0 - predefined queries
 
 ### Main nodes (UI)
-Febrero
-```Sql
-SELECT ?node ?label ?location 
-WHERE { 
-  ?node <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.wikidata.org/entity/Q108163> . 
-  ?node <http://www.wikidata.org/entity/P1476> ?label . 
-  OPTIONAL { ?node <http://www.wikidata.org/entity/P131> ?location } 
-} 
-ORDER BY ?label 
-LIMIT 30
-```
 
-17 de Abril
 ```Sparql
 SELECT ?node ?label ?location
 WHERE {
@@ -33,9 +16,8 @@ LIMIT 30
 ```
 
 > Clarify Q108163, P1476> Miquel
-> 
 
-
+#### Results
 ```Json
 [
   {
@@ -196,52 +178,24 @@ LIMIT 30
 ### Main nodes (Server)
 
 ```bash
-# Load credentials from your local secret storage before running:
-# export UBXAT_USER='...'; export UBXAT_PASSWORD='...'
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
-    "query": "SELECT ?node ?label ?location WHERE { ?node <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.wikidata.org/entity/Q108163> . ?node <http://www.wikidata.org/entity/P1476> ?label . OPTIONAL { ?node <http://www.wikidata.org/entity/P131> ?location } } ORDER BY ?label",
+    "query": "SELECT ?node WHERE { ?node a <http://www.wikidata.org/entity/Q108163> . } LIMIT 30",
     "format": "json"
   }'
 ```
 
-```
-Request ID: 1d1ee8f3-a9a4-4a74-be1c-33411cac64ee
-{"error":"ERROR_RESOURCE_EXHAUSTED","details":{"title":"High Load","detail":"We're experiencing high demand for Composer 2 right now. Please switch to Auto, another model, or try again in a few moments.","isRetryable":true,"additionalInfo":{},"buttons":[],"planChoices":[]},"isExpected":true}
-[resource_exhausted] Error
-lae: [resource_exhausted] Error
-    at Bz_ (vscode-file://vscode-app/Applications/Cursor.app/Contents/Resources/app/out/vs/workbench/workbench.desktop.main.js:28907:24637)
-    at Nz_ (vscode-file://vscode-app/Applications/Cursor.app/Contents/Resources/app/out/vs/workbench/workbench.desktop.main.js:28907:23543)
-    at Wz_ (vscode-file://vscode-app/Applications/Cursor.app/Contents/Resources/app/out/vs/workbench/workbench.desktop.main.js:28908:6487)
-    at h6u.run (vscode-file://vscode-app/Applications/Cursor.app/Contents/Resources/app/out/vs/workbench/workbench.desktop.main.js:28908:11285)
-    at async vDn.runAgentLoop (vscode-file://vscode-app/Applications/Cursor.app/Contents/Resources/app/out/vs/workbench/workbench.desktop.main.js:41216:11960)
-    at async zkd.streamFromAgentBackend (vscode-file://vscode-app/Applications/Cursor.app/Contents/Resources/app/out/vs/workbench/workbench.desktop.main.js:41286:12151)
-    at async zkd.getAgentStreamResponse (vscode-file://vscode-app/Applications/Cursor.app/Contents/Resources/app/out/vs/workbench/workbench.desktop.main.js:41286:18486)
-    at async B3e.submitChatMaybeAbortCurrent (vscode-file://vscode-app/Applications/Cursor.app/Contents/Resources/app/out/vs/workbench/workbench.desktop.main.js:29014:16809)
-```
 #### Results:
 ```Json
-
+STATUS: 500
+Internal Server Error
 ```
 
 ### People (UI)
-Febrero
-```sparql
-SELECT ??label ?birth ?de node death
-WHERE { 
-  ?node <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.wikidata.org/entity/Q5> . 
-  ?node <http://www.wikidata.org/entity/P1476> ?label . 
-  OPTIONAL { ?node <http://www.wikidata.org/entity/P569> ?birth } 
-  OPTIONAL { ?node <http://www.wikidata.org/entity/P570> ?death } 
-} 
-ORDER BY ?label 
-LIMIT 30
-```
-
-Abril
 ```Sparql
 SELECT ?node ?label ?birth ?death
 WHERE {
@@ -254,6 +208,7 @@ ORDER BY ?label
 LIMIT 30
 ```
 
+#### Results
 First try:
 ```
 Error: Request failed with status code 500
@@ -447,14 +402,13 @@ Second:
 > Same label = node ❓
 > Some present Null - is this from the original database or is the data lost? ☝️ > Miquel
 > 
-> Esta pide hasta 30 humanos (Q5) con su título, y opcionalmente sus fechas de nacimiento y muerte, ordenadas por el título. Sintácticamente es correcta, pero la propiedad título corresponde a  “published name of artwork”. Esta propiedad no aplica para los humanos (menos para fechas de nacimiento o muerte), hay algún proceso de normalización que genere la relación entre autores de obras (en la BD de censura) y la de Fosas Comunes que, por ejemplo sí tiene esto relacionado con los humanos?.  
-
-Una observación más es que la respuesta a esta query es igual a la anterior, arroja los mismos datos?.
 
 ### People (Server)
+
 ```Sparql
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
@@ -463,20 +417,14 @@ curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   }'
 ```
 
-### Mass graves (UI)
-Febrero
-```sparql
-SELECT ?node ?label ?location 
-WHERE { 
-  ?node <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.wikidata.org/entity/Q108163> . 
-  ?node <http://www.wikidata.org/entity/P1476> ?label . 
-  OPTIONAL { ?node <http://www.wikidata.org/entity/P131> ?location } 
-} 
-ORDER BY ?label 
-LIMIT 30
+#### Results:
+```Json
+STATUS: 500
+Internal Server Error
 ```
 
-Abril
+
+### Mass graves (UI)
 ```Sparql
 SELECT ?node ?label ?location
 WHERE {
@@ -488,7 +436,7 @@ ORDER BY ?label
 LIMIT 30
 ```
 
-Response with limit
+#### Response with limit
 ```Json
 [
   {
@@ -6722,9 +6670,10 @@ Response without limit
  > Some Nodes = labels some are null but indicate location (DB problem?) Miquel
 ### Mass graves (Server)
 
-```
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
+```sparql
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
@@ -6732,18 +6681,14 @@ curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
     "format": "json"
   }'
 ```
-### Statistics (UI)
-Febrero
-```sql
-SELECT (COUNT(?person) AS ?peopleCount) (COUNT(?grave) AS ?gravesCount) (COUNT(?doc) AS ?docsCount) 
-WHERE { 
-  OPTIONAL { ?person <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.wikidata.org/entity/Q5> } 
-  OPTIONAL { ?grave <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.wikidata.org/entity/Q108163> } 
-  OPTIONAL { ?doc <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.wikidata.org/entity/Q49848> } 
-}
+
+#### Results:
+```Json
+STATUS: 500
+Internal Server Error
 ```
 
-Abril
+### Statistics (UI)
 ```Sparql
 SELECT ?type (COUNT(DISTINCT ?entity) AS ?count)
 WHERE {
@@ -6761,10 +6706,7 @@ WHERE {
 GROUP BY ?type
 ORDER BY ?type
 ```
-
-> Q108163 > preposition > Miquel
-> 
-
+#### Results
 First time
 ```Json
 [
@@ -12882,9 +12824,10 @@ Screen:
 > why the Json copied from UI contains more entity types and the UI the ones present on screen?
 
 ### Statistics (Server)
-```
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
+```sql
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
@@ -12893,19 +12836,33 @@ curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   }'
 ```
 
-### Entity Types (UI)
-Febrero
-```Sparql
-SELECT DISTINCT ?type (COUNT(?node) AS ?count) 
-WHERE { 
-  ?node <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?type . 
-} 
-GROUP BY ?type 
-ORDER BY DESC(?count) 
-LIMIT 20
+#### Results:
+```Json
+{
+  "results": [
+    {
+      "category": "Brigadists",
+      "count": 1030
+    },
+    {
+      "category": "Mass graves",
+      "count": 492
+    },
+    {
+      "category": "Documents",
+      "count": 724
+    }
+  ],
+  "columns": [
+    "category",
+    "count"
+  ]
+}
 ```
 
-Abril
+
+### Entity Types (UI)
+
 ```Sparql
 SELECT DISTINCT ?type (COUNT(?node) AS ?count)
 WHERE {
@@ -12916,6 +12873,7 @@ ORDER BY DESC(?count)
 LIMIT 20
 ```
 
+#### Results
 ```Json
 [
   {
@@ -12950,9 +12908,10 @@ LIMIT 20
 ```
 
 ### Entity Types (Server)
-```
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
+```Sparql
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
@@ -12961,9 +12920,46 @@ curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   }'
 ```
 
-## Summary: 
+#### Results:
+```Json
+{
+  "results": [
+    {
+      "category": "Person",
+      "count": 1030
+    },
+    {
+      "category": "Document",
+      "count": 724
+    },
+    {
+      "category": "MassGrave",
+      "count": 492
+    },
+    {
+      "category": "Location",
+      "count": 417
+    },
+    {
+      "category": "Organization",
+      "count": 171
+    },
+    {
+      "category": "Country",
+      "count": 42
+    },
+    {
+      "category": "Event",
+      "count": 39
+    }
+  ],
+  "columns": [
+    "category",
+    "count"
+  ]
+}
+```
 
-Are the queries the same than the versions from lasts revisions? - Statistics changed
 
 
 ## Test 1 – Total number of nodes 
@@ -12978,7 +12974,11 @@ RETURN count(n) AS totalNodes;
 ```
 #### Cypher results (JSON)
 ```
-
+[
+  {
+    "totalNodes": 2890
+  }
+]
 ```
 ### SPARQL:
 ```sparql
@@ -12994,13 +12994,15 @@ WHERE {
 }
 ```
 #### SPARQL results (JSON)
-```
+```Sparql
+Error: Request failed with status code 500
 ```
 
 ### Server:
 ```
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
@@ -13008,8 +13010,51 @@ curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
     "format": "json"
   }'
 ```
-#### Server results (JSON)
+
+#### Results 1:
+```Json
+STATUS: 500
+Internal Server Error
 ```
+#### Results 2
+```json
+
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "SELECT (COUNT(DISTINCT ?n) AS ?totalNodes) WHERE { { ?n ?p ?o . } UNION { ?s ?p ?n . } }",
+    "format": "json"
+  }'
+{"results":[{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890},{"totalNodes":2890}],"columns":["totalNodes"]}%                
+```
+
+> observación: aggregation/cardinality bug? I evaluated the query and the eval plat says that might be a server problem. 
+
+#### Results 3
+```
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "SELECT (COUNT(DISTINCT ?n) AS ?totalNodes) WHERE { { ?n ?p ?o . } UNION { ?s ?p ?n . } }",
+    "format": "json"
+  }'curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "SELECT (COUNT(DISTINCT ?n) AS ?totalNodes) WHERE { { ?n ?p ?o . } UNION { ?s ?p ?n . } }",
+    "format": "json"
+  }'
+curl: (22) The requested URL returned error: 422
+{"detail":[{"type":"json_invalid","loc":["body",131],"msg":"JSON decode error","input":{},"ctx":{"error":"Extra data"}}]}curl: (22) The requested URL returned error: 422
+{"detail":[{"type":"json_invalid","loc":["body",131],"msg":"JSON decode error","input":{},"ctx":{"error":"Extra data"}}]}%
 ```
 ## Test 2 – Total number of relationships
 
@@ -13022,7 +13067,11 @@ RETURN count(r) AS totalRelationships;
 ```
 #### Cypher results (JSON)
 ```
-
+[
+  {
+    "totalRelationships": 4482
+  }
+]
 ```
 ### SPARQL:
 ```
@@ -13033,12 +13082,14 @@ WHERE {
 ```
 #### SPARQL results (JSON)
 ```
+Error: timeout of 30000ms exceeded
 ```
 
 ### Server:
 ```
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
@@ -13046,9 +13097,14 @@ curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
     "format": "json"
   }'
 ```
-#### Server results (JSON)
+
+#### Results:
+```Json
+STATUS: 500
+Internal Server Error
 ```
-```
+
+
 ## Test 3 – Nodes per label (overview)
 Objective: identify the semantic classes present in the graph and confirm that expected node types are available.
 
@@ -13060,7 +13116,33 @@ RETURN label
 ORDER BY label;
 ```
 #### Cypher results (JSON)
-```
+```json
+[
+  {
+    "label": "Chunk"
+  },
+  {
+    "label": "Country"
+  },
+  {
+    "label": "Document"
+  },
+  {
+    "label": "Event"
+  },
+  {
+    "label": "Location"
+  },
+  {
+    "label": "MassGrave"
+  },
+  {
+    "label": "Organization"
+  },
+  {
+    "label": "Person"
+  }
+]
 ```
 ### SPARQL:
 ```
@@ -13074,12 +13156,14 @@ ORDER BY ?label
 ```
 #### SPARQL results (JSON)
 ```
+Error: timeout of 30000ms exceeded
 ```
 
 ### Server:
 ```
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
@@ -13087,8 +13171,26 @@ curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
     "format": "json"
   }'
 ```
+
+#### Results:
+```Json
+STATUS: 500
+Internal Server Error
+```
+
 #### Server results (JSON)
 ```
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> SELECT DISTINCT ?label WHERE { ?n rdf:type ?label . } ORDER BY ?label",
+    "format": "json"
+  }'
+curl: (22) The requested URL returned error: 500
+Internal Server Error%
 ```
 ## Test 4 – Relationships per type
 Objective: validate that key predicates exist and estimate their volume to detect missing or under-populated relations.
@@ -13100,23 +13202,65 @@ RETURN count(r) AS locatedInRels;
 ```
 #### Cypher results (JSON)
 ```
+[
+  {
+    "locatedInRels": 1684
+  }
+]
 ```
 ### SPARQL:
 ```
-PREFIX ex: <https://example.org/ns#>
-
-SELECT (COUNT(*) AS ?locatedInRels)
+SELECT ?relType (COUNT(*) AS ?count)
 WHERE {
-  ?subject ex:LOCATED_IN ?object .
+  ?subject ?predicate ?object .
+  BIND(STR(?predicate) AS ?relType)
 }
+GROUP BY ?relType
+ORDER BY DESC(?count)
 ```
 #### SPARQL results (JSON)
 ```
+[
+  {
+    "locatedInRels": 1684
+  }
+]
 ```
 ### Server:
 ```
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "SELECT ?relType (COUNT(*) AS ?count) WHERE { ?subject ?predicate ?object . BIND(STR(?predicate) AS ?relType) } GROUP BY ?relType ORDER BY DESC(?count)",
+    "format": "json"
+  }'
+```
+
+#### Results:
+```Json
+STATUS: 500
+Internal Server Error
+```
+
+#### Server results (JSON)
+```
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> SELECT DISTINCT ?label WHERE { ?n rdf:type ?label . } ORDER BY ?label",
+    "format": "json"
+  }'
+curl: (22) The requested URL returned error: 500
+Internal Server Error%                                                   
+elenagomez@Elenas-MacBook-Pro Documents % curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
@@ -13124,24 +13268,426 @@ curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
     "format": "json"
   }'
 ```
-#### Server results (JSON)
-```
-```
 ## Test 5 – Approximate number of properties on nodes
-### 1) Node properties: list all keys and how many nodes have each
+### Query 1 - Node properties: list all keys and how many nodes have each
 
 Objective: measure metadata coverage across node attributes and identify sparse or overused properties.
 
+#### Cypher
 ```Cypher
 MATCH (n)
 UNWIND keys(n) AS key
 RETURN key AS propertyName, count(*) AS nodesWithProperty
 ORDER BY nodesWithProperty DESC, propertyName;
 ```
-### 2) Per relationship type: with vs. without properties
+
+##### Cypher results (JSON)
+```json
+[
+  {
+    "propertyName": "P1476",
+    "nodesWithProperty": 1474
+  },
+  {
+    "propertyName": "_normalized_name",
+    "nodesWithProperty": 1392
+  },
+  {
+    "propertyName": "name",
+    "nodesWithProperty": 1392
+  },
+  {
+    "propertyName": "id",
+    "nodesWithProperty": 1116
+  },
+  {
+    "propertyName": "P27",
+    "nodesWithProperty": 674
+  },
+  {
+    "propertyName": "titol",
+    "nodesWithProperty": 410
+  },
+  {
+    "propertyName": "id_fosa",
+    "nodesWithProperty": 312
+  },
+  {
+    "propertyName": "P625_lat",
+    "nodesWithProperty": 259
+  },
+  {
+    "propertyName": "P625_lng",
+    "nodesWithProperty": 256
+  },
+  {
+    "propertyName": "P17",
+    "nodesWithProperty": 248
+  },
+  {
+    "propertyName": "P131",
+    "nodesWithProperty": 218
+  },
+  {
+    "propertyName": "P742",
+    "nodesWithProperty": 199
+  },
+  {
+    "propertyName": "P569",
+    "nodesWithProperty": 193
+  },
+  {
+    "propertyName": "P625",
+    "nodesWithProperty": 183
+  },
+  {
+    "propertyName": "P106",
+    "nodesWithProperty": 130
+  },
+  {
+    "propertyName": "conservacio",
+    "nodesWithProperty": 123
+  },
+  {
+    "propertyName": "mida",
+    "nodesWithProperty": 123
+  },
+  {
+    "propertyName": "fitxa",
+    "nodesWithProperty": 119
+  },
+  {
+    "propertyName": "gender",
+    "nodesWithProperty": 106
+  },
+  {
+    "propertyName": "P1142",
+    "nodesWithProperty": 103
+  },
+  {
+    "propertyName": "categoria_de_fosses",
+    "nodesWithProperty": 90
+  },
+  {
+    "propertyName": "tipologia_inhumats",
+    "nodesWithProperty": 90
+  },
+  {
+    "propertyName": "comments",
+    "nodesWithProperty": 73
+  },
+  {
+    "propertyName": "context_defuncio",
+    "nodesWithProperty": 60
+  },
+  {
+    "propertyName": "category",
+    "nodesWithProperty": 46
+  },
+  {
+    "propertyName": "conservation",
+    "nodesWithProperty": 40
+  },
+  {
+    "propertyName": "size",
+    "nodesWithProperty": 39
+  },
+  {
+    "propertyName": "P570",
+    "nodesWithProperty": 31
+  },
+  {
+    "propertyName": "provincia",
+    "nodesWithProperty": 30
+  },
+  {
+    "propertyName": "url",
+    "nodesWithProperty": 29
+  },
+  {
+    "propertyName": "T_tol",
+    "nodesWithProperty": 28
+  },
+  {
+    "propertyName": "categoria",
+    "nodesWithProperty": 20
+  },
+  {
+    "propertyName": "categoria_fosses",
+    "nodesWithProperty": 20
+  },
+  {
+    "propertyName": "comarca",
+    "nodesWithProperty": 20
+  },
+  {
+    "propertyName": "comunitat_autonoma",
+    "nodesWithProperty": 20
+  },
+  {
+    "propertyName": "latitude",
+    "nodesWithProperty": 19
+  },
+  {
+    "propertyName": "longitude",
+    "nodesWithProperty": 19
+  },
+  {
+    "propertyName": "node_id",
+    "nodesWithProperty": 18
+  },
+  {
+    "propertyName": "nombre",
+    "nodesWithProperty": 13
+  },
+  {
+    "propertyName": "pais",
+    "nodesWithProperty": 12
+  },
+  {
+    "propertyName": "P131_municipality",
+    "nodesWithProperty": 10
+  },
+  {
+    "propertyName": "P131_municipio",
+    "nodesWithProperty": 10
+  },
+  {
+    "propertyName": "P131_province",
+    "nodesWithProperty": 10
+  },
+  {
+    "propertyName": "P131_provincia",
+    "nodesWithProperty": 10
+  },
+  {
+    "propertyName": "coordenadas_lat",
+    "nodesWithProperty": 10
+  },
+  {
+    "propertyName": "coordenadas_lng",
+    "nodesWithProperty": 10
+  },
+  {
+    "propertyName": "death_context",
+    "nodesWithProperty": 10
+  },
+  {
+    "propertyName": "municipio",
+    "nodesWithProperty": 10
+  },
+  {
+    "propertyName": "tipologia",
+    "nodesWithProperty": 10
+  },
+  {
+    "propertyName": "title",
+    "nodesWithProperty": 10
+  },
+  {
+    "propertyName": "typology",
+    "nodesWithProperty": 10
+  },
+  {
+    "propertyName": "victim_typology",
+    "nodesWithProperty": 10
+  },
+  {
+    "propertyName": "Categoria_de_fosses",
+    "nodesWithProperty": 9
+  },
+  {
+    "propertyName": "Comarca",
+    "nodesWithProperty": 9
+  },
+  {
+    "propertyName": "Comunitat_aut_noma",
+    "nodesWithProperty": 9
+  },
+  {
+    "propertyName": "Conservaci_",
+    "nodesWithProperty": 9
+  },
+  {
+    "propertyName": "Context_defunci_",
+    "nodesWithProperty": 9
+  },
+  {
+    "propertyName": "Fitxa",
+    "nodesWithProperty": 9
+  },
+  {
+    "propertyName": "Mida",
+    "nodesWithProperty": 9
+  },
+  {
+    "propertyName": "Tipologia_inhumats",
+    "nodesWithProperty": 9
+  },
+  {
+    "propertyName": "status",
+    "nodesWithProperty": 6
+  },
+  {
+    "propertyName": "uuid",
+    "nodesWithProperty": 6
+  },
+  {
+    "propertyName": "description",
+    "nodesWithProperty": 5
+  },
+  {
+    "propertyName": "notes",
+    "nodesWithProperty": 3
+  },
+  {
+    "propertyName": "origin",
+    "nodesWithProperty": 3
+  },
+  {
+    "propertyName": "fecha_nacimiento",
+    "nodesWithProperty": 1
+  },
+  {
+    "propertyName": "fosa_comun",
+    "nodesWithProperty": 1
+  },
+  {
+    "propertyName": "instance_of",
+    "nodesWithProperty": 1
+  },
+  {
+    "propertyName": "is_primary",
+    "nodesWithProperty": 1
+  }
+]
+```
+
+#### SPARQL
+```sparql
+SELECT ?propertyName (COUNT(*) AS ?nodesWithProperty)
+WHERE {
+  ?n ?property ?value .
+  BIND(STR(?property) AS ?propertyName)
+}
+GROUP BY ?propertyName
+ORDER BY DESC(?nodesWithProperty) ?propertyName
+```
+
+##### SPARQL results (JSON)
+```json
+[
+  {
+    "propertyName": "LOCATED_IN",
+    "nodesWithProperty": 1684
+  },
+  {
+    "propertyName": "COUNTRY_OF_CITIZENSHIP",
+    "nodesWithProperty": 883
+  },
+  {
+    "propertyName": "DOCUMENTED_IN",
+    "nodesWithProperty": 701
+  },
+  {
+    "propertyName": "MEMBER_OF",
+    "nodesWithProperty": 491
+  },
+  {
+    "propertyName": "PARTICIPATED_IN",
+    "nodesWithProperty": 291
+  },
+  {
+    "propertyName": "TREATED_AT",
+    "nodesWithProperty": 128
+  },
+  {
+    "propertyName": "RELATED_TO",
+    "nodesWithProperty": 89
+  },
+  {
+    "propertyName": "CONTAINS",
+    "nodesWithProperty": 40
+  },
+  {
+    "propertyName": "HAS_TYPOLOGY",
+    "nodesWithProperty": 39
+  },
+  {
+    "propertyName": "AUTHORED_BY",
+    "nodesWithProperty": 37
+  },
+  {
+    "propertyName": "CAUSED_BY",
+    "nodesWithProperty": 23
+  },
+  {
+    "propertyName": "PLACE_OF_BIRTH",
+    "nodesWithProperty": 23
+  },
+  {
+    "propertyName": "BURIED_IN",
+    "nodesWithProperty": 14
+  },
+  {
+    "propertyName": "SERVED_IN",
+    "nodesWithProperty": 12
+  },
+  {
+    "propertyName": "HAS_IDEOLOGY",
+    "nodesWithProperty": 10
+  },
+  {
+    "propertyName": "TRAVELLED_TO",
+    "nodesWithProperty": 5
+  },
+  {
+    "propertyName": "HAS_OCCUPATION",
+    "nodesWithProperty": 4
+  },
+  {
+    "propertyName": "KNOWS",
+    "nodesWithProperty": 3
+  },
+  {
+    "propertyName": "DETAINED_AT",
+    "nodesWithProperty": 2
+  },
+  {
+    "propertyName": "SIBLING_OF",
+    "nodesWithProperty": 2
+  },
+  {
+    "propertyName": "partner",
+    "nodesWithProperty": 1
+  }
+]
+```
+
+#### Server
+```bash
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "SELECT ?propertyName (COUNT(*) AS ?nodesWithProperty) WHERE { ?n ?property ?value . BIND(STR(?property) AS ?propertyName) } GROUP BY ?propertyName ORDER BY DESC(?nodesWithProperty) ?propertyName",
+    "format": "json"
+  }'
+```
+
+##### Results:
+```Json
+curl: (22) The requested URL returned error: 500
+Internal Server Error%               
+```
+
+### Query 2 - Per relationship type: with vs. without properties
 
 Objective: check which relationship types preserve metadata and which are being stored as bare links.
 
+#### Cypher
 ```Cypher
 MATCH ()-[r]->()
 WITH type(r) AS relType, size(keys(r)) AS propCount
@@ -13154,9 +13700,49 @@ ORDER BY totalRelationships DESC, relType;
 
 ```
 
-### 3. Relationships per label:
+#### Cypher results (JSON)
+```json
+```
+
+#### SPARQL
+```sparql
+SELECT ?relType
+       (COUNT(*) AS ?totalRelationships)
+WHERE {
+  ?s ?p ?o .
+  BIND(STR(?p) AS ?relType)
+}
+GROUP BY ?relType
+ORDER BY DESC(?totalRelationships) ?relType
+```
+
+#### SPARQL results (JSON)
+```json
+```
+
+#### Server
+```bash
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "SELECT ?relType (COUNT(*) AS ?totalRelationships) WHERE { ?s ?p ?o . BIND(STR(?p) AS ?relType) } GROUP BY ?relType ORDER BY DESC(?totalRelationships) ?relType",
+    "format": "json"
+  }'
+```
+
+#### Results:
+```Json
+STATUS: 500
+Internal Server Error
+```
+
+### Query 3 - Relationships per label
 Objective: cross-check node-label and property co-occurrence to detect uneven modelling between entity classes.
 
+#### Cypher
 ```Cypher
 MATCH (n)
 UNWIND labels(n) AS label
@@ -13165,12 +13751,181 @@ RETURN label, key AS propertyName, count(*) AS nodesWithProperty
 ORDER BY label, nodesWithProperty DESC, propertyName;
 ```
 
+#### Cypher results (JSON)
+```Json
+[
+  {
+    "relType": "LOCATED_IN",
+    "totalRelationships": 1684,
+    "withoutProperties": 1682,
+    "withProperties": 2
+  },
+  {
+    "relType": "COUNTRY_OF_CITIZENSHIP",
+    "totalRelationships": 883,
+    "withoutProperties": 883,
+    "withProperties": 0
+  },
+  {
+    "relType": "DOCUMENTED_IN",
+    "totalRelationships": 701,
+    "withoutProperties": 701,
+    "withProperties": 0
+  },
+  {
+    "relType": "MEMBER_OF",
+    "totalRelationships": 491,
+    "withoutProperties": 491,
+    "withProperties": 0
+  },
+  {
+    "relType": "PARTICIPATED_IN",
+    "totalRelationships": 291,
+    "withoutProperties": 291,
+    "withProperties": 0
+  },
+  {
+    "relType": "TREATED_AT",
+    "totalRelationships": 128,
+    "withoutProperties": 126,
+    "withProperties": 2
+  },
+  {
+    "relType": "RELATED_TO",
+    "totalRelationships": 89,
+    "withoutProperties": 89,
+    "withProperties": 0
+  },
+  {
+    "relType": "CONTAINS",
+    "totalRelationships": 40,
+    "withoutProperties": 40,
+    "withProperties": 0
+  },
+  {
+    "relType": "HAS_TYPOLOGY",
+    "totalRelationships": 39,
+    "withoutProperties": 39,
+    "withProperties": 0
+  },
+  {
+    "relType": "AUTHORED_BY",
+    "totalRelationships": 37,
+    "withoutProperties": 37,
+    "withProperties": 0
+  },
+  {
+    "relType": "CAUSED_BY",
+    "totalRelationships": 23,
+    "withoutProperties": 23,
+    "withProperties": 0
+  },
+  {
+    "relType": "PLACE_OF_BIRTH",
+    "totalRelationships": 23,
+    "withoutProperties": 23,
+    "withProperties": 0
+  },
+  {
+    "relType": "BURIED_IN",
+    "totalRelationships": 14,
+    "withoutProperties": 14,
+    "withProperties": 0
+  },
+  {
+    "relType": "SERVED_IN",
+    "totalRelationships": 12,
+    "withoutProperties": 12,
+    "withProperties": 0
+  },
+  {
+    "relType": "HAS_IDEOLOGY",
+    "totalRelationships": 10,
+    "withoutProperties": 10,
+    "withProperties": 0
+  },
+  {
+    "relType": "TRAVELLED_TO",
+    "totalRelationships": 5,
+    "withoutProperties": 4,
+    "withProperties": 1
+  },
+  {
+    "relType": "HAS_OCCUPATION",
+    "totalRelationships": 4,
+    "withoutProperties": 4,
+    "withProperties": 0
+  },
+  {
+    "relType": "KNOWS",
+    "totalRelationships": 3,
+    "withoutProperties": 3,
+    "withProperties": 0
+  },
+  {
+    "relType": "DETAINED_AT",
+    "totalRelationships": 2,
+    "withoutProperties": 0,
+    "withProperties": 2
+  },
+  {
+    "relType": "SIBLING_OF",
+    "totalRelationships": 2,
+    "withoutProperties": 2,
+    "withProperties": 0
+  },
+  {
+    "relType": "partner",
+    "totalRelationships": 1,
+    "withoutProperties": 1,
+    "withProperties": 0
+  }
+]
+```
+
+#### SPARQL
+```sparql
+SELECT ?label ?propertyName (COUNT(*) AS ?nodesWithProperty)
+WHERE {
+  ?n a ?labelIRI ;
+     ?property ?value .
+  BIND(STR(?labelIRI) AS ?label)
+  BIND(STR(?property) AS ?propertyName)
+}
+GROUP BY ?label ?propertyName
+ORDER BY ?label DESC(?nodesWithProperty) ?propertyName
+```
+
+#### SPARQL results (JSON)
+```json
+```
+
+#### Server
+```bash
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "SELECT ?label ?propertyName (COUNT(*) AS ?nodesWithProperty) WHERE { ?n a ?labelIRI ; ?property ?value . BIND(STR(?labelIRI) AS ?label) BIND(STR(?property) AS ?propertyName) } GROUP BY ?label ?propertyName ORDER BY ?label DESC(?nodesWithProperty) ?propertyName",
+    "format": "json"
+  }'
+```
+
+#### Results:
+```Json
+STATUS: 500
+Internal Server Error
+```
+
 ## Test 6 – Approximate number of properties on relationships
 
-### 1. Count relationships with vs. without any properties (global)
+### Query 1 - Count relationships with vs. without any properties (global)
 
 Objective: quantify how much relational context is encoded as properties versus only as edge existence.
 
+#### Cypher
 ```Cypher
 MATCH ()-[r]->()
 WITH r, size(keys(r)) AS propCount
@@ -13180,21 +13935,87 @@ RETURN
   count(CASE WHEN propCount > 0 THEN 1 END) AS relationshipsWithProperties;
 ```
 
-### Interpreting “all metadata present in the knowledge base”
+##### Cypher results (JSON)
+```Json
+[
+  {
+    "totalRelationships": 4482,
+    "relationshipsWithoutProperties": 4475,
+    "relationshipsWithProperties": 7
+  }
+]
+```
 
-## Test 7 - Database‑level metadata
+#### SPARQL
+```sparql
+SELECT ?predicate (COUNT(*) AS ?edges)
+WHERE {
+  ?subject ?predicate ?object .
+}
+GROUP BY ?predicate
+ORDER BY DESC(?edges)
+```
 
-### 1. Show databases:
+##### SPARQL results (JSON)
+```json
+```
+
+#### Server
+```bash
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "SELECT ?predicate (COUNT(*) AS ?edges) WHERE { ?subject ?predicate ?object . } GROUP BY ?predicate ORDER BY DESC(?edges)",
+    "format": "json"
+  }'
+```
+
+##### Results:
+```Json
+STATUS: 500
+Internal Server Error
+```
+
+## Test 7 - Database‑level metadata - Interpreting “all metadata present in the knowledge base”
+
+Structure note: this test is mostly Neo4j-admin oriented. A direct SPARQL equivalent may not exist for several checks; SPARQL/Server blocks are added as placeholders to keep the same template.
+
+### Query 1 - Show databases
 
 Objective: confirm target database context and avoid running diagnostics against the wrong environment.
 
+#### Cypher
 ```Cypher
 SHOW DATABASES;
 ```
+
+#### Cypher results (JSON)
+```
+Error: timeout of 30000ms exceeded
+```
+
+#### SPARQL
+```sparql
+# No direct SPARQL equivalent for database catalog commands (SHOW DATABASES).
+```
+
+#### SPARQL results (JSON)
+```json
+```
+
+#### Server
+```bash
+# N/A for SHOW DATABASES in SPARQL API.
+```
+
 #### Results:
+```Json
 ```
-```
-### 2. Labels, relationship types, property keys (structural overview)
+
+### Query 2 - Labels, relationship types, property keys (structural overview)
 
 Objective: obtain a high-level schema inventory to support quality and interoperability checks.
 
@@ -13206,7 +14027,7 @@ ORDER BY label;
 #### Results:
 ```
 ```
-### 3. Node schema: which labels have which properties (with counts)
+### 3. Node schema: which labels have which properties (with counts)- UI
 
 Objective: inspect label-level property structure, expected datatypes, and mandatory flags for schema consistency.
 
@@ -13224,7 +14045,7 @@ ORDER BY nodeLabels, propertyName;
 ```
 ```
 
-### 4. All property keys registered in the database
+### 4. All property keys registered in the database - UX
 
 Objective: list the full attribute vocabulary and detect uncontrolled key proliferation.
 
@@ -13237,7 +14058,7 @@ ORDER BY propertyKey;
 ```
 ```
 
-### 5. Relationship schema: which relationship types have which properties
+### 5. Relationship schema: which relationship types have which properties- UI
 
 Objective: verify relational schema consistency and check whether edge-level attributes follow a stable model.
 
@@ -13254,7 +14075,7 @@ ORDER BY relType, propertyName;
 ```
 ```
 
-### 6. Node property coverage by label
+### 6. Node property coverage by label- UI
 
 Shows, for each label, which property keys appear and in how many nodes.
 Objective: evaluate completeness per entity type and find labels with weak metadata population.
@@ -13272,7 +14093,7 @@ ORDER BY label, nodesWithProperty DESC, propertyName;
 ```
 ```
 
-### 7. Relationship property coverage by relationship type
+### 7. Relationship property coverage by relationship type- UI
 
 Shows, for each relationship type, which property keys appear and in how many relationships.
 Objective: evaluate completeness per predicate type and identify relations missing descriptive metadata.
@@ -13289,7 +14110,7 @@ ORDER BY relType, relationshipsWithProperty DESC, propertyName;
 ```
 ```
 
-### 8. Node labels without any properties
+### 8. Node labels without any properties- UI
 
 Useful to detect labels that only exist structurally and store no metadata fields.
 Objective: detect entity classes that may be semantically empty and require enrichment.
@@ -13308,7 +14129,7 @@ ORDER BY nodesWithoutProperties DESC, label;
 ```
 ```
 
-### 9. Relationship types without any properties
+### 9. Relationship types without any properties- UI
 
 Objective: detect predicate classes that may be too generic or insufficiently documented for analysis.
 
@@ -13325,7 +14146,7 @@ ORDER BY relationshipsWithoutProperties DESC, relType;
 ```
 ```
 
-### 10. Observed value types for node properties
+### 10. Observed value types for node properties - UI
 
 This gives an empirical summary of the values currently stored, beyond the schema procedures.
 Objective: validate real-world datatype usage and identify type drift for the same property key.
@@ -13345,7 +14166,7 @@ ORDER BY label, propertyName, occurrences DESC, observedType;
 ```
 ```
 
-### 11. Observed value types for relationship properties
+### 11. Observed value types for relationship properties - UI
 
 Objective: validate edge-property datatype consistency and detect modelling anomalies across relation types.
 
@@ -13360,14 +14181,337 @@ RETURN relType,
 ORDER BY relType, propertyName, occurrences DESC, observedType;
 ```
 ### Results:
-```
+```json
 ```
 
-# 1.2. Types of SPARQL search:
+# 2. Final ingestion validation block (3 databases + mapping)
+
+Purpose: validate that the three source databases (`Cultura y censura`, `fosas comunes`, `SIDBRINT`) were ingested correctly, and that cross-source consistency rules hold.
+
+> Note: these tests assume source/provenance values are stored in literals (for example, in a source field, source URI, or cited dataset title). If your ingestion uses different provenance fields, replace the provenance filters accordingly.
+
+### Test A1 - Source footprint by provenance string
+
+Objective: verify that all three expected sources are present in the graph after full ingestion.
+
+#### Cypher
+```cypher
+MATCH (n)
+UNWIND keys(n) AS k
+WITH n, k, toLower(toString(n[k])) AS s
+WITH n,
+     CASE
+       WHEN s CONTAINS "cultura" OR s CONTAINS "censura" THEN "cultura_y_censura"
+       WHEN s CONTAINS "fosa" THEN "fosas_comunes"
+       WHEN s CONTAINS "sidbrint" THEN "sidbrint"
+       ELSE "other"
+     END AS sourceTag
+RETURN sourceTag, count(DISTINCT n) AS count
+ORDER BY count DESC;
+```
+
+##### Cypher results (JSON)
+```json
+```
+
+#### SPARQL
+```sparql
+SELECT ?sourceTag (COUNT(DISTINCT ?node) AS ?count)
+WHERE {
+  ?node ?p ?src .
+  FILTER(isLiteral(?src))
+  BIND(LCASE(STR(?src)) AS ?s)
+  BIND(
+    IF(CONTAINS(?s, "cultura") || CONTAINS(?s, "censura"), "cultura_y_censura",
+      IF(CONTAINS(?s, "fosa"), "fosas_comunes",
+        IF(CONTAINS(?s, "sidbrint"), "sidbrint", "other")))
+    AS ?sourceTag
+  )
+}
+GROUP BY ?sourceTag
+ORDER BY DESC(?count)
+```
+
+##### Results
+```Json
+
+```
+
+#### Server (API)
+```bash
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "SELECT ?sourceTag (COUNT(DISTINCT ?node) AS ?count) WHERE { ?node ?p ?src . FILTER(isLiteral(?src)) BIND(LCASE(STR(?src)) AS ?s) BIND(IF(CONTAINS(?s, \"cultura\") || CONTAINS(?s, \"censura\"), \"cultura_y_censura\", IF(CONTAINS(?s, \"fosa\"), \"fosas_comunes\", IF(CONTAINS(?s, \"sidbrint\"), \"sidbrint\", \"other\"))) AS ?sourceTag) } GROUP BY ?sourceTag ORDER BY DESC(?count)",
+    "format": "json"
+  }'
+```
+
+##### Results:
+```Json
+STATUS: 404
+404 page not found
+```
+
+
+### Test A2 - Fosas comunes required fields completeness
+
+Objective: validate required mapped fields (`name/title`, `country`, and at least one location field) for mass-grave entities.
+
+#### Platform (SPARQL)
+```sparql
+SELECT
+  (COUNT(DISTINCT ?g) AS ?totalMassGraves)
+  (COUNT(DISTINCT ?gWithName) AS ?withName)
+  (COUNT(DISTINCT ?gWithCountry) AS ?withCountry)
+  (COUNT(DISTINCT ?gWithAdmin) AS ?withAdminLocation)
+WHERE {
+  ?g a <http://www.wikidata.org/entity/Q108163> .
+  OPTIONAL { ?g <http://www.wikidata.org/entity/P1476> ?name . BIND(?g AS ?gWithName) }
+  OPTIONAL { ?g <http://www.wikidata.org/entity/P17> ?country . BIND(?g AS ?gWithCountry) }
+  OPTIONAL {
+    { ?g <http://www.wikidata.org/entity/P131> ?admin . }
+    UNION
+    { ?g <http://www.wikidata.org/entity/P276> ?admin . }
+    BIND(?g AS ?gWithAdmin)
+  }
+}
+```
+##### Results
+```Json
+
+```
+#### Server (API)
+```bash
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "SELECT (COUNT(DISTINCT ?g) AS ?totalMassGraves) (COUNT(DISTINCT ?gWithName) AS ?withName) (COUNT(DISTINCT ?gWithCountry) AS ?withCountry) (COUNT(DISTINCT ?gWithAdmin) AS ?withAdminLocation) WHERE { ?g a <http://www.wikidata.org/entity/Q108163> . OPTIONAL { ?g <http://www.wikidata.org/entity/P1476> ?name . BIND(?g AS ?gWithName) } OPTIONAL { ?g <http://www.wikidata.org/entity/P17> ?country . BIND(?g AS ?gWithCountry) } OPTIONAL { { ?g <http://www.wikidata.org/entity/P131> ?admin . } UNION { ?g <http://www.wikidata.org/entity/P276> ?admin . } BIND(?g AS ?gWithAdmin) } }",
+    "format": "json"
+  }'
+```
+
+##### Results:
+```Json
+STATUS: 404
+404 page not found
+```
+
+
+### Test A3 - Fosas comunes coordinate integrity (P625)
+
+Objective: detect mass-grave records with malformed coordinate literals.
+
+#### Platform (SPARQL)
+```sparql
+SELECT ?g ?coord
+WHERE {
+  ?g a <http://www.wikidata.org/entity/Q108163> ;
+     <http://www.wikidata.org/entity/P625> ?coord .
+  FILTER(
+    !REGEX(STR(?coord), "^-?([0-8]?\\d(\\.\\d+)?|90(\\.0+)?),\\s*-?((1[0-7]\\d)|(\\d?\\d))(\\.\\d+)?|180(\\.0+)?$")
+  )
+}
+LIMIT 100
+```
+##### Results
+```Json
+
+```
+#### Server (API)
+```bash
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "SELECT ?g ?coord WHERE { ?g a <http://www.wikidata.org/entity/Q108163> ; <http://www.wikidata.org/entity/P625> ?coord . FILTER(!REGEX(STR(?coord), \"^-?([0-8]?\\\\d(\\\\.\\\\d+)?|90(\\\\.0+)?),\\\\s*-?((1[0-7]\\\\d)|(\\\\d?\\\\d))(\\\\.\\\\d+)?|180(\\\\.0+)?$\")) } LIMIT 100",
+    "format": "json"
+  }'
+```
+
+##### Results:
+```Json
+STATUS: 404
+404 page not found
+```
+
+
+### Test B1 - SIDBRINT person integrity
+
+Objective: validate that person entities include core identity fields (label and at least one temporal marker).
+
+#### Platform (SPARQL)
+```sparql
+SELECT
+  (COUNT(DISTINCT ?p) AS ?totalPersons)
+  (COUNT(DISTINCT ?withLabel) AS ?withLabel)
+  (COUNT(DISTINCT ?withBirthOrDeath) AS ?withBirthOrDeath)
+WHERE {
+  ?p a <http://www.wikidata.org/entity/Q5> .
+  OPTIONAL { ?p <http://www.wikidata.org/entity/P1476> ?label . BIND(?p AS ?withLabel) }
+  OPTIONAL {
+    { ?p <http://www.wikidata.org/entity/P569> ?birth . }
+    UNION
+    { ?p <http://www.wikidata.org/entity/P570> ?death . }
+    BIND(?p AS ?withBirthOrDeath)
+  }
+}
+```
+##### Results
+```Json
+
+```
+#### Server (API)
+```bash
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "SELECT (COUNT(DISTINCT ?p) AS ?totalPersons) (COUNT(DISTINCT ?withLabel) AS ?withLabel) (COUNT(DISTINCT ?withBirthOrDeath) AS ?withBirthOrDeath) WHERE { ?p a <http://www.wikidata.org/entity/Q5> . OPTIONAL { ?p <http://www.wikidata.org/entity/P1476> ?label . BIND(?p AS ?withLabel) } OPTIONAL { { ?p <http://www.wikidata.org/entity/P569> ?birth . } UNION { ?p <http://www.wikidata.org/entity/P570> ?death . } BIND(?p AS ?withBirthOrDeath) } }",
+    "format": "json"
+  }'
+```
+
+##### Results:
+```Json
+STATUS: 404
+404 page not found
+```
+
+
+### Test C1 - Cultura y censura document integrity
+
+Objective: verify document-class entities and minimal descriptive metadata.
+
+#### Platform (SPARQL)
+```sparql
+SELECT
+  (COUNT(DISTINCT ?d) AS ?totalDocuments)
+  (COUNT(DISTINCT ?withTitle) AS ?withTitle)
+WHERE {
+  ?d a <http://www.wikidata.org/entity/Q49848> .
+  OPTIONAL { ?d <http://www.wikidata.org/entity/P1476> ?title . BIND(?d AS ?withTitle) }
+}
+```
+##### Results
+```Json
+
+```
+
+#### Server (API)
+```bash
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "SELECT (COUNT(DISTINCT ?d) AS ?totalDocuments) (COUNT(DISTINCT ?withTitle) AS ?withTitle) WHERE { ?d a <http://www.wikidata.org/entity/Q49848> . OPTIONAL { ?d <http://www.wikidata.org/entity/P1476> ?title . BIND(?d AS ?withTitle) } }",
+    "format": "json"
+  }'
+```
+
+##### Results:
+```Json
+STATUS: 404
+404 page not found
+```
+
+
+### Test X1 - Cross-source duplicate candidates by normalized title
+
+Objective: detect potential duplicate entities generated by multi-source ingest.
+
+#### Platform (SPARQL)
+```sparql
+SELECT ?normalizedLabel (COUNT(DISTINCT ?n) AS ?nodes)
+WHERE {
+  ?n <http://www.wikidata.org/entity/P1476> ?label .
+  BIND(LCASE(REPLACE(STR(?label), "[^\\p{L}\\p{N}]+", "")) AS ?normalizedLabel)
+}
+GROUP BY ?normalizedLabel
+HAVING (COUNT(DISTINCT ?n) > 1)
+ORDER BY DESC(?nodes)
+LIMIT 100
+```
+##### Results
+```Json
+
+```
+#### Server (API)
+```bash
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "SELECT ?normalizedLabel (COUNT(DISTINCT ?n) AS ?nodes) WHERE { ?n <http://www.wikidata.org/entity/P1476> ?label . BIND(LCASE(REPLACE(STR(?label), \"[^\\\\p{L}\\\\p{N}]+\", \"\")) AS ?normalizedLabel) } GROUP BY ?normalizedLabel HAVING (COUNT(DISTINCT ?n) > 1) ORDER BY DESC(?nodes) LIMIT 100",
+    "format": "json"
+  }'
+```
+
+##### Results:
+```Json
+STATUS: 404
+404 page not found
+```
+
+
+### Test X2 - Type conflict check per entity
+
+Objective: detect nodes with unusually high class multiplicity (possible merge errors).
+
+#### Platform (SPARQL)
+```sparql
+SELECT ?n (COUNT(DISTINCT ?type) AS ?typeCount)
+WHERE {
+  ?n a ?type .
+}
+GROUP BY ?n
+HAVING (COUNT(DISTINCT ?type) > 3)
+ORDER BY DESC(?typeCount)
+LIMIT 100
+```
+##### Results
+```Json
+
+```
+#### Server (API)
+```bash
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "SELECT ?n (COUNT(DISTINCT ?type) AS ?typeCount) WHERE { ?n a ?type . } GROUP BY ?n HAVING (COUNT(DISTINCT ?type) > 3) ORDER BY DESC(?typeCount) LIMIT 100",
+    "format": "json"
+  }'
+```
+
+##### Results:
+```Json
+STATUS: 404
+404 page not found
+```
+
+
+# 3. Types of SPARQL search:
 
 > Note: the SPARQL examples below assume an RDF view of the graph. `rdf:type` is standard; `ex:` is a placeholder namespace and should be replaced with the real ontology/predicate IRIs before running.
 
-## SELECT queries
+## 1. SELECT queries
 
 #### 1. Basic triple patterns: ?subject ?predicate ?object
 
@@ -13380,6 +14524,10 @@ MATCH (subject)-[r]->(object)
 RETURN id(subject) AS subject, type(r) AS predicate, id(object) AS object;
 ```
 
+###### Results
+```Json
+
+```
 ##### SPARQL
 ```sparql
 SELECT ?subject ?predicate ?object
@@ -13388,10 +14536,16 @@ WHERE {
 }
 ```
 
+###### Results
+```Json
+
+```
+
 ##### Server (SPARQL via API)
 ```bash
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
@@ -13400,7 +14554,14 @@ curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   }'
 ```
 
-#### 2. FILTER clauses: basic string and numeric comparisons
+###### Results:
+```Json
+STATUS: 500
+Internal Server Error
+```
+
+
+## 2. FILTER clauses: basic string and numeric comparisons
 
 **String:** nodes whose label (name/title/text) contains a substring (case-insensitive).
 Objective: test semantic filtering capacity and verify retrieval precision for targeted terms.
@@ -13411,6 +14572,11 @@ MATCH (n)
 WHERE toLower(coalesce(n.name, n.title, n.text, "")) CONTAINS "brigadista"
 RETURN id(n) AS subject, labels(n) AS labels, coalesce(n.name, n.title, n.text) AS label
 LIMIT 50;
+```
+
+###### Results
+```Json
+
 ```
 
 ##### SPARQL
@@ -13427,11 +14593,16 @@ WHERE {
 }
 LIMIT 50
 ```
+###### Results
+```Json
+
+```
 
 ##### Server (SPARQL via API)
 ```bash
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
@@ -13440,7 +14611,14 @@ curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   }'
 ```
 
-#### 3. LIMIT / OFFSET: result pagination
+###### Results:
+```Json
+STATUS: 500
+Internal Server Error
+```
+
+
+## 3. LIMIT / OFFSET: result pagination
 
 Objective: test stable pagination and deterministic ordering for reproducible batches and UI navigation.
 
@@ -13451,6 +14629,11 @@ RETURN id(subject) AS subject, type(r) AS predicate, id(object) AS object
 ORDER BY subject, predicate, object
 SKIP 0
 LIMIT 25;
+```
+
+###### Results
+```Json
+
 ```
 
 ##### SPARQL
@@ -13464,10 +14647,16 @@ LIMIT 25
 OFFSET 0
 ```
 
+###### Results
+```Json
+
+```
+
 ##### Server (SPARQL via API)
 ```bash
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
@@ -13476,7 +14665,14 @@ curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   }'
 ```
 
-## ASK queries
+###### Results:
+```Json
+STATUS: 404
+404 page not found
+```
+
+
+## 4. ASK queries
 
 #### 1. Boolean: check for pattern existence
 
@@ -13490,6 +14686,10 @@ WITH subject, r, object
 LIMIT 1
 RETURN count(*) > 0 AS result;
 ```
+###### Results
+```Json
+
+```
 
 ##### SPARQL
 ```sparql
@@ -13498,11 +14698,16 @@ WHERE {
   ?subject ?predicate ?object .
 }
 ```
+###### Results
+```Json
+
+```
 
 ##### Server (SPARQL via API)
 ```bash
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
@@ -13510,6 +14715,13 @@ curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
     "format": "json"
   }'
 ```
+
+###### Results:
+```Json
+STATUS: 404
+404 page not found
+```
+
 
 #### 2. Basic ASK: e.g. “exists any MassGrave?”
 
@@ -13522,6 +14734,10 @@ WITH n
 LIMIT 1
 RETURN count(*) > 0 AS result;
 ```
+###### Results
+```Json
+
+```
 
 ##### SPARQL
 ```sparql
@@ -13533,11 +14749,16 @@ WHERE {
   ?n rdf:type ex:MassGrave .
 }
 ```
+###### Results
+```Json
+
+```
 
 ##### Server (SPARQL via API)
 ```bash
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
@@ -13546,7 +14767,14 @@ curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
   }'
 ```
 
-## COUNT queries (extended)
+###### Results:
+```Json
+STATUS: 404
+404 page not found
+```
+
+
+## 5. COUNT queries (extended)
 
 Objective: validate aggregate consistency for core graph magnitudes and support monitoring dashboards with reproducible totals.
 
@@ -13564,6 +14792,9 @@ MATCH (n)
 RETURN count(n) AS count;
 ```
 
+###### Results
+```json
+```
 ##### SPARQL
 ```sparql
 SELECT (COUNT(DISTINCT ?n) AS ?count)
@@ -13577,11 +14808,15 @@ WHERE {
   }
 }
 ```
+###### Results
+```json
+```
 
 ##### Server (SPARQL via API)
 ```bash
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
@@ -13589,12 +14824,11 @@ curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
     "format": "json"
   }'
 ```
-##### UBXAT response: 
-```bash
-```
 
-##### Server response: 
-```bash
+###### Results:
+```Json
+STATUS: 404
+404 page not found
 ```
 
 **Count relationships (triples):**
@@ -13606,6 +14840,9 @@ Objective: compute assertion cardinality and detect unexpected relation inflatio
 MATCH ()-[r]->()
 RETURN count(r) AS count;
 ```
+###### Results
+```json
+```
 
 ##### SPARQL
 ```sparql
@@ -13614,11 +14851,15 @@ WHERE {
   ?subject ?predicate ?object .
 }
 ```
+###### Results
+```json
+```
 
 ##### Server (SPARQL via API)
 ```bash
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
@@ -13626,15 +14867,14 @@ curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
     "format": "json"
   }'
 ```
-##### UBXAT response: 
-```bash
+
+###### Results:
+```Json
+STATUS: 404
+404 page not found
 ```
 
-##### Server response: 
-```bash
-```
-
-## CONSTRUCT
+## 6. CONSTRUCT
 
 Return a graph-shaped payload (equivalent to SPARQL CONSTRUCT): nodes + relationships as collections.
 Objective: verify graph reconstruction/export behavior for downstream visualization, interchange, or pipeline reuse.
@@ -13652,6 +14892,10 @@ CALL {
 RETURN nodes, relationships;
 ```
 
+###### Results
+```json
+```
+
 ##### SPARQL
 ```sparql
 CONSTRUCT {
@@ -13661,11 +14905,15 @@ WHERE {
   ?subject ?predicate ?object .
 }
 ```
+###### Results
+```json
+```
 
 ##### Server (SPARQL via API)
 ```bash
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
@@ -13673,17 +14921,15 @@ curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
     "format": "json"
   }'
 ```
-##### UBXAT response
-```bash
 
+###### Results:
+```Json
+STATUS: 404
+404 page not found
 ```
 
-##### Server response (API)
-```bash
-  
-```
 
-## DESCRIBE
+## 7. DESCRIBE
 
 Describe one node by id: its properties and outgoing/incoming relationships (and neighbour ids).
 Objective: validate entity-centric inspection and provenance-style drill-down for debugging and curation workflows.
@@ -13695,6 +14941,9 @@ WHERE id(n) = 0
 OPTIONAL MATCH (n)-[r]->(m)
 RETURN id(n) AS id, labels(n) AS labels, properties(n) AS props, collect({ type: type(r), targetId: id(m) }) AS outRels;
 ```
+###### Results
+```json
+```
 
 ##### SPARQL
 ```sparql
@@ -13703,11 +14952,15 @@ WHERE {
   VALUES ?n { <https://example.org/resource/0> }
 }
 ```
+###### Results
+```json
+```
 
 ##### Server (SPARQL via API)
 ```bash
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
@@ -13715,17 +14968,14 @@ curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
     "format": "json"
   }'
 ```
-##### UBXAT response
-```bash
 
+###### Results:
+```Json
+STATUS: 404
+404 page not found
 ```
 
-##### Server response (API)
-```bash
-   
-```
-
-## FILTER
+## 8. FILTER
 
 Restrict by string (e.g. label contains "brigadista") or by numeric range (e.g. id in range).
 
@@ -13735,6 +14985,10 @@ MATCH (n)
 WHERE toLower(coalesce(n.name, n.title, n.text, "")) CONTAINS "brigadista"
 RETURN id(n) AS subject, labels(n) AS labels, coalesce(n.name, n.title, n.text) AS label
 LIMIT 50;
+```
+
+###### Results
+```json
 ```
 
 ##### SPARQL
@@ -13751,11 +15005,15 @@ WHERE {
 }
 LIMIT 50
 ```
+###### Results
+```json
+```
 
 ##### Server (SPARQL via API)
 ```bash
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
@@ -13763,16 +15021,15 @@ curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
     "format": "json"
   }'
 ```
-##### UBXAT response
-```bash
+
+###### Results:
+```Json
+STATUS: 404
+404 page not found
 ```
 
-##### Server response (API)
-```bash
- 
-```
 
-## ORDER BY
+## 9. ORDER BY
 
 Sort results (e.g. by subject, then predicate, then object) and paginate with SKIP/LIMIT.
 Objective: ensure deterministic ordering so repeated runs return stable sequences for review and auditing.
@@ -13786,6 +15043,10 @@ SKIP 0
 LIMIT 25;
 ```
 
+###### Results
+```json
+```
+
 ##### SPARQL
 ```sparql
 SELECT ?subject ?predicate ?object
@@ -13797,10 +15058,15 @@ LIMIT 25
 OFFSET 0
 ```
 
+###### Results
+```json
+```
+
 ##### Server (SPARQL via API)
 ```bash
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
@@ -13808,14 +15074,11 @@ curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
     "format": "json"
   }'
 ```
-##### UBXAT response
-```bash
 
-```
-
-##### Server response (API)
-```bash
-  
+###### Results:
+```Json
+STATUS: 404
+404 page not found
 ```
 
 ## GROUP BY
@@ -13832,6 +15095,10 @@ ORDER BY count DESC
 LIMIT 20;
 ```
 
+###### Results
+```json
+```
+
 ##### SPARQL
 ```sparql
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -13845,10 +15112,15 @@ ORDER BY DESC(?count)
 LIMIT 20
 ```
 
+###### Results
+```json
+```
+
 ##### Server (SPARQL via API)
 ```bash
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
@@ -13856,17 +15128,14 @@ curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
     "format": "json"
   }'
 ```
-##### UBXAT response
-```bash
 
+###### Results:
+```Json
+STATUS: 404
+404 page not found
 ```
 
-##### Server response (API)
-```
-
-```
-
-## AGGREGATIONS
+## 10. AGGREGATIONS
 
 Count nodes, count relationships, or both in one response.
 Objective: validate multi-metric aggregation in a single query to reduce API calls and keep metrics synchronized.
@@ -13878,6 +15147,9 @@ WITH count(n) AS nodeCount
 MATCH ()-[r]->()
 WITH nodeCount, count(r) AS relCount
 RETURN nodeCount, relCount;
+```
+###### Results
+```json
 ```
 
 ##### SPARQL
@@ -13900,11 +15172,15 @@ WHERE {
   }
 }
 ```
+###### Results
+```json
+```
 
 ##### Server (SPARQL via API)
 ```bash
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
@@ -13912,18 +15188,39 @@ curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
     "format": "json"
   }'
 ```
-##### UBXAT response
-```bash
 
+###### Results:
+```Json
+STATUS: 404
+404 page not found
 ```
 
-# 2. Evaluation framework (complement to query tests)
+# Summary
+### Server query errors map
+
+| Block | Server query scope | Error |
+|---|---|---|
+| Test 0 | Main nodes / People / Mass graves | `STATUS: 500` (`Internal Server Error`) |
+| Test 1 | Total nodes | `STATUS: 500` (`Internal Server Error`) |
+| Test 2 | Total relationships | `STATUS: 500` (`Internal Server Error`) |
+| Test 3 | Nodes per label | `STATUS: 500` (`Internal Server Error`) |
+| Test 4 | Relationships per type | `STATUS: 500` (`Internal Server Error`) |
+| Test 5 | Node/relationship property diagnostics | `STATUS: 500` (`Internal Server Error`) |
+| Test 6 | Relationship property totals | `STATUS: 500` (`Internal Server Error`) |
+| 2. Final ingestion validation | A1, A2, A3, B1, C1, X1, X2 | `STATUS: 404` (`404 page not found`) |
+| SELECT/FILTER suite | SELECT, FILTER | `STATUS: 500` (`Internal Server Error`) |
+| Protocol/advanced suite | LIMIT/OFFSET, ASK, COUNT(ext), CONSTRUCT, DESCRIBE, FILTER, ORDER BY, GROUP BY, AGGREGATIONS | `STATUS: 404` (`404 page not found`) |
+
+
+
+
+# Evaluation framework (complement to query tests)
 
 This framework complements technical query checks with data-quality, fairness, usability, and decision-support evaluation.
 
 ## 2.1 Scope and unit of analysis
 
-- **System under test**: Neo4j + SPARQL/Cypher API (`/api/v1/sparql`) and derived UI workflows.
+- **System under test**: Neo4j + SPARQL/Cypher API (`/cognitive/api/v1/sparql`) and derived UI workflows.
 - **Evidence unit**: one test run = one query + one dataset snapshot + one evaluator note.
 - **Evaluation levels**:
   1) data/model level (graph structure, properties, consistency),
@@ -14059,226 +15356,3 @@ Optional weighting (if needed for HerStory priorities):
 - Binns, R. (2018). Fairness definitions and political-philosophy framing. URL: `https://proceedings.mlr.press/v81/binns18a.html`.
 - Calvo Flores, L. (2023). Cognitive load reduction for decision-support visualizations. URL: `http://hdl.handle.net/10803/688422`.
 - Çiçek, S., & Özkar, M. (2025). Expert-evaluated AI-assisted design-space method. DOI: `10.1007/s10798-025-10033-y`.
-
-## 2.7 Final ingestion validation block (3 databases + mapping)
-
-Purpose: validate that the three source databases (`Cultura y censura`, `fosas comunes`, `SIDBRINT`) were ingested correctly, and that cross-source consistency rules hold.
-
-> Note: these tests assume source/provenance values are stored in literals (for example, in a source field, source URI, or cited dataset title). If your ingestion uses different provenance fields, replace the provenance filters accordingly.
-
-### Test A1 - Source footprint by provenance string
-
-Objective: verify that all three expected sources are present in the graph after full ingestion.
-
-#### Platform (SPARQL)
-```sparql
-SELECT ?sourceTag (COUNT(DISTINCT ?node) AS ?count)
-WHERE {
-  ?node ?p ?src .
-  FILTER(isLiteral(?src))
-  BIND(LCASE(STR(?src)) AS ?s)
-  BIND(
-    IF(CONTAINS(?s, "cultura") || CONTAINS(?s, "censura"), "cultura_y_censura",
-      IF(CONTAINS(?s, "fosa"), "fosas_comunes",
-        IF(CONTAINS(?s, "sidbrint"), "sidbrint", "other")))
-    AS ?sourceTag
-  )
-}
-GROUP BY ?sourceTag
-ORDER BY DESC(?count)
-```
-
-#### Server (API)
-```bash
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "SELECT ?sourceTag (COUNT(DISTINCT ?node) AS ?count) WHERE { ?node ?p ?src . FILTER(isLiteral(?src)) BIND(LCASE(STR(?src)) AS ?s) BIND(IF(CONTAINS(?s, \"cultura\") || CONTAINS(?s, \"censura\"), \"cultura_y_censura\", IF(CONTAINS(?s, \"fosa\"), \"fosas_comunes\", IF(CONTAINS(?s, \"sidbrint\"), \"sidbrint\", \"other\"))) AS ?sourceTag) } GROUP BY ?sourceTag ORDER BY DESC(?count)",
-    "format": "json"
-  }'
-```
-
-### Test A2 - Fosas comunes required fields completeness
-
-Objective: validate required mapped fields (`name/title`, `country`, and at least one location field) for mass-grave entities.
-
-#### Platform (SPARQL)
-```sparql
-SELECT
-  (COUNT(DISTINCT ?g) AS ?totalMassGraves)
-  (COUNT(DISTINCT ?gWithName) AS ?withName)
-  (COUNT(DISTINCT ?gWithCountry) AS ?withCountry)
-  (COUNT(DISTINCT ?gWithAdmin) AS ?withAdminLocation)
-WHERE {
-  ?g a <http://www.wikidata.org/entity/Q108163> .
-  OPTIONAL { ?g <http://www.wikidata.org/entity/P1476> ?name . BIND(?g AS ?gWithName) }
-  OPTIONAL { ?g <http://www.wikidata.org/entity/P17> ?country . BIND(?g AS ?gWithCountry) }
-  OPTIONAL {
-    { ?g <http://www.wikidata.org/entity/P131> ?admin . }
-    UNION
-    { ?g <http://www.wikidata.org/entity/P276> ?admin . }
-    BIND(?g AS ?gWithAdmin)
-  }
-}
-```
-
-#### Server (API)
-```bash
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "SELECT (COUNT(DISTINCT ?g) AS ?totalMassGraves) (COUNT(DISTINCT ?gWithName) AS ?withName) (COUNT(DISTINCT ?gWithCountry) AS ?withCountry) (COUNT(DISTINCT ?gWithAdmin) AS ?withAdminLocation) WHERE { ?g a <http://www.wikidata.org/entity/Q108163> . OPTIONAL { ?g <http://www.wikidata.org/entity/P1476> ?name . BIND(?g AS ?gWithName) } OPTIONAL { ?g <http://www.wikidata.org/entity/P17> ?country . BIND(?g AS ?gWithCountry) } OPTIONAL { { ?g <http://www.wikidata.org/entity/P131> ?admin . } UNION { ?g <http://www.wikidata.org/entity/P276> ?admin . } BIND(?g AS ?gWithAdmin) } }",
-    "format": "json"
-  }'
-```
-
-### Test A3 - Fosas comunes coordinate integrity (P625)
-
-Objective: detect mass-grave records with malformed coordinate literals.
-
-#### Platform (SPARQL)
-```sparql
-SELECT ?g ?coord
-WHERE {
-  ?g a <http://www.wikidata.org/entity/Q108163> ;
-     <http://www.wikidata.org/entity/P625> ?coord .
-  FILTER(
-    !REGEX(STR(?coord), "^-?([0-8]?\\d(\\.\\d+)?|90(\\.0+)?),\\s*-?((1[0-7]\\d)|(\\d?\\d))(\\.\\d+)?|180(\\.0+)?$")
-  )
-}
-LIMIT 100
-```
-
-#### Server (API)
-```bash
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "SELECT ?g ?coord WHERE { ?g a <http://www.wikidata.org/entity/Q108163> ; <http://www.wikidata.org/entity/P625> ?coord . FILTER(!REGEX(STR(?coord), \"^-?([0-8]?\\\\d(\\\\.\\\\d+)?|90(\\\\.0+)?),\\\\s*-?((1[0-7]\\\\d)|(\\\\d?\\\\d))(\\\\.\\\\d+)?|180(\\\\.0+)?$\")) } LIMIT 100",
-    "format": "json"
-  }'
-```
-
-### Test B1 - SIDBRINT person integrity
-
-Objective: validate that person entities include core identity fields (label and at least one temporal marker).
-
-#### Platform (SPARQL)
-```sparql
-SELECT
-  (COUNT(DISTINCT ?p) AS ?totalPersons)
-  (COUNT(DISTINCT ?withLabel) AS ?withLabel)
-  (COUNT(DISTINCT ?withBirthOrDeath) AS ?withBirthOrDeath)
-WHERE {
-  ?p a <http://www.wikidata.org/entity/Q5> .
-  OPTIONAL { ?p <http://www.wikidata.org/entity/P1476> ?label . BIND(?p AS ?withLabel) }
-  OPTIONAL {
-    { ?p <http://www.wikidata.org/entity/P569> ?birth . }
-    UNION
-    { ?p <http://www.wikidata.org/entity/P570> ?death . }
-    BIND(?p AS ?withBirthOrDeath)
-  }
-}
-```
-
-#### Server (API)
-```bash
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "SELECT (COUNT(DISTINCT ?p) AS ?totalPersons) (COUNT(DISTINCT ?withLabel) AS ?withLabel) (COUNT(DISTINCT ?withBirthOrDeath) AS ?withBirthOrDeath) WHERE { ?p a <http://www.wikidata.org/entity/Q5> . OPTIONAL { ?p <http://www.wikidata.org/entity/P1476> ?label . BIND(?p AS ?withLabel) } OPTIONAL { { ?p <http://www.wikidata.org/entity/P569> ?birth . } UNION { ?p <http://www.wikidata.org/entity/P570> ?death . } BIND(?p AS ?withBirthOrDeath) } }",
-    "format": "json"
-  }'
-```
-
-### Test C1 - Cultura y censura document integrity
-
-Objective: verify document-class entities and minimal descriptive metadata.
-
-#### Platform (SPARQL)
-```sparql
-SELECT
-  (COUNT(DISTINCT ?d) AS ?totalDocuments)
-  (COUNT(DISTINCT ?withTitle) AS ?withTitle)
-WHERE {
-  ?d a <http://www.wikidata.org/entity/Q49848> .
-  OPTIONAL { ?d <http://www.wikidata.org/entity/P1476> ?title . BIND(?d AS ?withTitle) }
-}
-```
-
-#### Server (API)
-```bash
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "SELECT (COUNT(DISTINCT ?d) AS ?totalDocuments) (COUNT(DISTINCT ?withTitle) AS ?withTitle) WHERE { ?d a <http://www.wikidata.org/entity/Q49848> . OPTIONAL { ?d <http://www.wikidata.org/entity/P1476> ?title . BIND(?d AS ?withTitle) } }",
-    "format": "json"
-  }'
-```
-
-### Test X1 - Cross-source duplicate candidates by normalized title
-
-Objective: detect potential duplicate entities generated by multi-source ingest.
-
-#### Platform (SPARQL)
-```sparql
-SELECT ?normalizedLabel (COUNT(DISTINCT ?n) AS ?nodes)
-WHERE {
-  ?n <http://www.wikidata.org/entity/P1476> ?label .
-  BIND(LCASE(REPLACE(STR(?label), "[^\\p{L}\\p{N}]+", "")) AS ?normalizedLabel)
-}
-GROUP BY ?normalizedLabel
-HAVING (COUNT(DISTINCT ?n) > 1)
-ORDER BY DESC(?nodes)
-LIMIT 100
-```
-
-#### Server (API)
-```bash
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "SELECT ?normalizedLabel (COUNT(DISTINCT ?n) AS ?nodes) WHERE { ?n <http://www.wikidata.org/entity/P1476> ?label . BIND(LCASE(REPLACE(STR(?label), \"[^\\\\p{L}\\\\p{N}]+\", \"\")) AS ?normalizedLabel) } GROUP BY ?normalizedLabel HAVING (COUNT(DISTINCT ?n) > 1) ORDER BY DESC(?nodes) LIMIT 100",
-    "format": "json"
-  }'
-```
-
-### Test X2 - Type conflict check per entity
-
-Objective: detect nodes with unusually high class multiplicity (possible merge errors).
-
-#### Platform (SPARQL)
-```sparql
-SELECT ?n (COUNT(DISTINCT ?type) AS ?typeCount)
-WHERE {
-  ?n a ?type .
-}
-GROUP BY ?n
-HAVING (COUNT(DISTINCT ?type) > 3)
-ORDER BY DESC(?typeCount)
-LIMIT 100
-```
-
-#### Server (API)
-```bash
-curl -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST 'https://ubxat.peninsula.co/api/v1/sparql' \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "SELECT ?n (COUNT(DISTINCT ?type) AS ?typeCount) WHERE { ?n a ?type . } GROUP BY ?n HAVING (COUNT(DISTINCT ?type) > 3) ORDER BY DESC(?typeCount) LIMIT 100",
-    "format": "json"
-  }'
-```
