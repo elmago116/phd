@@ -13997,6 +13997,11 @@ SHOW DATABASES;
 
 #### Cypher results (JSON) #op
 ```json
+{
+  "ok": false,
+  "status": 500,
+  "error": "Internal Server Error"
+}
 ```
 
 #### SPARQL #op
@@ -14014,6 +14019,11 @@ WHERE {
 
 #### SPARQL results (JSON) #op
 ```json
+{
+  "ok": false,
+  "status": 500,
+  "error": "Internal Server Error"
+}
 ```
 
 #### Server #op
@@ -14046,6 +14056,23 @@ ORDER BY label;
 
 #### Cypher results (JSON) #op
 ```json
+{
+  "ok": true,
+  "status": 200,
+  "response": {
+    "results": [
+      { "label": "Chunk" },
+      { "label": "Country" },
+      { "label": "Document" },
+      { "label": "Event" },
+      { "label": "Location" },
+      { "label": "MassGrave" },
+      { "label": "Organization" },
+      { "label": "Person" }
+    ],
+    "columns": ["label"]
+  }
+}
 ```
 
 #### SPARQL
@@ -14061,6 +14088,11 @@ ORDER BY ?label
 
 ##### SPARQL results (JSON) #op
 ```json
+{
+  "ok": false,
+  "status": 500,
+  "error": "Internal Server Error"
+}
 ```
 
 #### Server
@@ -14092,6 +14124,11 @@ ORDER BY nodeLabels, propertyName;
 
 ##### Cypher results (JSON)
 ```json
+{
+  "ok": false,
+  "status": 404,
+  "error": "404 page not found"
+}
 ```
 
 #### SPARQL
@@ -14110,6 +14147,11 @@ ORDER BY ?label DESC(?nodesWithProperty) ?propertyName
 
 ##### SPARQL results (JSON)
 ```json
+{
+  "ok": false,
+  "status": 404,
+  "error": "404 page not found"
+}
 ```
 
 #### Server
@@ -14137,6 +14179,11 @@ ORDER BY propertyKey;
 
 ##### Cypher results (JSON)
 ```json
+{
+  "ok": false,
+  "status": 404,
+  "error": "404 page not found"
+}
 ```
 
 #### SPARQL
@@ -14151,6 +14198,11 @@ ORDER BY ?propertyName
 
 ##### SPARQL results (JSON)
 ```json
+{
+  "ok": false,
+  "status": 404,
+  "error": "404 page not found"
+}
 ```
 
 #### Server
@@ -14182,6 +14234,11 @@ ORDER BY relType, propertyName;
 
 ##### Cypher results (JSON)
 ```json
+{
+  "ok": false,
+  "status": 404,
+  "error": "404 page not found"
+}
 ```
 
 #### SPARQL
@@ -14199,6 +14256,11 @@ ORDER BY ?relType DESC(?relationshipsWithProperty) ?propertyName
 
 ##### SPARQL results (JSON)
 ```json
+{
+  "ok": false,
+  "status": 404,
+  "error": "404 page not found"
+}
 ```
 
 #### Server
@@ -14231,6 +14293,11 @@ ORDER BY label, nodesWithProperty DESC, propertyName;
 
 ##### Cypher results (JSON)
 ```json
+{
+  "ok": false,
+  "status": 404,
+  "error": "404 page not found"
+}
 ```
 
 #### SPARQL
@@ -14249,6 +14316,11 @@ ORDER BY ?label DESC(?nodesWithProperty) ?propertyName
 
 ##### SPARQL results (JSON)
 ```json
+{
+  "ok": false,
+  "status": 404,
+  "error": "404 page not found"
+}
 ```
 
 #### Server
@@ -14933,7 +15005,10 @@ MATCH (subject)-[r]->(object)
 RETURN id(subject) AS subject, type(r) AS predicate, id(object) AS object;
 ```
 
-```json\n{"results":[{"subject":2,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":2,"predicate":"DOCUMENTED_IN","object":5},{"subject":3,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":3,"predicate":"DOCUMENTED_IN","object":6},{"subject":4,"predicate":"PARTICIPATED_IN","object":1119},{"subject":4,"predicate":"MEMBER_OF","object":1135},{"subject":4,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":4,"predicate":"DOCUMENTED_IN","object":7},{"subject":8,"predicate":"MEMBER_OF","object":1166},{"subject":8,"predicate":"DOCUMENTED_IN","object":9},{"subject":10,"predicate":"MEMBER_OF","object":11},{"subject":10,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":10,"predicate":"DOCUMENTED_IN","object":12},{"subject":13,"predicate":"MEMBER_OF","object":14},{"subject":13,"predicate":"DOCUMENTED_IN","object":15},{"subject":16,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1664},{"subject":16,"predicate":"DOCUMENTED_IN","object":17},{"subject":18,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1115},{"subject":18,"predicate":"DOCUMENTED_IN","object":19},{"subject":20,"predicate":"DOCUMENTED_IN","object":21},{"subject":22,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1206},{"subject":22,"predicate":"DOCUMENTED_IN","object":25},{"subject":23,"predicate":"PARTICIPATED_IN","object":1119},{"subject":23,"predicate":"MEMBER_OF","object":1292},{"subject":23,"predicate":"TREATED_AT","object":1378},{"subject":23,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1123},{"subject":23,"predicate":"DOCUMENTED_IN","object":26},{"subject":24,"predicate":"PARTICIPATED_IN","object":1119},{"subject":24,"predicate":"MEMBER_OF","object":1292},{"subject":24,"predicate":"DOCUMENTED_IN","object":27},{"subject":28,"predicate":"PARTICIPATED_IN","object":1132},{"subject":28,"predicate":"COUNTRY_OF_CITIZENSHIP","object":321},{"subject":28,"predicate":"DOCUMENTED_IN","object":29},{"subject":30,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":30,"predicate":"DOCUMENTED_IN","object":31},{"subject":30,"predicate":"AUTHORED_BY","object":1882},{"subject":32,"predicate":"COUNTRY_OF_CITIZENSHIP","object":321},{"subject":32,"predicate":"DOCUMENTED_IN","object":33},{"subject":32,"predicate":"AUTHORED_BY","object":1882},{"subject":34,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1242},{"subject":34,"predicate":"DOCUMENTED_IN","object":37},{"subject":35,"predicate":"MEMBER_OF","object":1543},{"subject":35,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1458},{"subject":35,"predicate":"DOCUMENTED_IN","object":38},{"subject":36,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1458},{"subject":36,"predicate":"DOCUMENTED_IN","object":39},{"subject":40,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":41,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1242},{"subject":42,"predicate":"PARTICIPATED_IN","object":1564},{"subject":43,"predicate":"MEMBER_OF","object":1595},{"subject":43,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1385},{"subject":44,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":45,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1216},{"subject":46,"predicate":"MEMBER_OF","object":48},{"subject":46,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1115},{"subject":46,"predicate":"DOCUMENTED_IN","object":47},{"subject":49,"predicate":"DOCUMENTED_IN","object":50},{"subject":51,"predicate":"MEMBER_OF","object":1166},{"subject":51,"predicate":"DOCUMENTED_IN","object":52},{"subject":53,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1148},{"subject":53,"predicate":"DOCUMENTED_IN","object":56},{"subject":54,"predicate":"PARTICIPATED_IN","object":1119},{"subject":54,"predicate":"MEMBER_OF","object":1135},{"subject":54,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":54,"predicate":"DOCUMENTED_IN","object":57},{"subject":54,"predicate":"AUTHORED_BY","object":1713},{"subject":55,"predicate":"PARTICIPATED_IN","object":1119},{"subject":55,"predicate":"MEMBER_OF","object":1135},{"subject":55,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":55,"predicate":"DOCUMENTED_IN","object":58},{"subject":55,"predicate":"AUTHORED_BY","object":1713},{"subject":59,"predicate":"MEMBER_OF","object":1543},{"subject":59,"predicate":"DOCUMENTED_IN","object":60},{"subject":61,"predicate":"MEMBER_OF","object":1120},{"subject":61,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1115},{"subject":61,"predicate":"DOCUMENTED_IN","object":62},{"subject":63,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1156},{"subject":63,"predicate":"DOCUMENTED_IN","object":64},{"subject":65,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1216},{"subject":65,"predicate":"DOCUMENTED_IN","object":68},{"subject":66,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1216},{"subject":66,"predicate":"DOCUMENTED_IN","object":69},{"subject":67,"predicate":"DOCUMENTED_IN","object":70},{"subject":72,"predicate":"MEMBER_OF","object":1166},{"subject":72,"predicate":"DOCUMENTED_IN","object":73},{"subject":74,"predicate":"MEMBER_OF","ob\n... [truncated]\n```
+```Json
+json\n{"results":[{"subject":2,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":2,"predicate":"DOCUMENTED_IN","object":5},{"subject":3,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":3,"predicate":"DOCUMENTED_IN","object":6},{"subject":4,"predicate":"PARTICIPATED_IN","object":1119},{"subject":4,"predicate":"MEMBER_OF","object":1135},{"subject":4,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":4,"predicate":"DOCUMENTED_IN","object":7},{"subject":8,"predicate":"MEMBER_OF","object":1166},{"subject":8,"predicate":"DOCUMENTED_IN","object":9},{"subject":10,"predicate":"MEMBER_OF","object":11},{"subject":10,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":10,"predicate":"DOCUMENTED_IN","object":12},{"subject":13,"predicate":"MEMBER_OF","object":14},{"subject":13,"predicate":"DOCUMENTED_IN","object":15},{"subject":16,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1664},{"subject":16,"predicate":"DOCUMENTED_IN","object":17},{"subject":18,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1115},{"subject":18,"predicate":"DOCUMENTED_IN","object":19},{"subject":20,"predicate":"DOCUMENTED_IN","object":21},{"subject":22,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1206},{"subject":22,"predicate":"DOCUMENTED_IN","object":25},{"subject":23,"predicate":"PARTICIPATED_IN","object":1119},{"subject":23,"predicate":"MEMBER_OF","object":1292},{"subject":23,"predicate":"TREATED_AT","object":1378},{"subject":23,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1123},{"subject":23,"predicate":"DOCUMENTED_IN","object":26},{"subject":24,"predicate":"PARTICIPATED_IN","object":1119},{"subject":24,"predicate":"MEMBER_OF","object":1292},{"subject":24,"predicate":"DOCUMENTED_IN","object":27},{"subject":28,"predicate":"PARTICIPATED_IN","object":1132},{"subject":28,"predicate":"COUNTRY_OF_CITIZENSHIP","object":321},{"subject":28,"predicate":"DOCUMENTED_IN","object":29},{"subject":30,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":30,"predicate":"DOCUMENTED_IN","object":31},{"subject":30,"predicate":"AUTHORED_BY","object":1882},{"subject":32,"predicate":"COUNTRY_OF_CITIZENSHIP","object":321},{"subject":32,"predicate":"DOCUMENTED_IN","object":33},{"subject":32,"predicate":"AUTHORED_BY","object":1882},{"subject":34,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1242},{"subject":34,"predicate":"DOCUMENTED_IN","object":37},{"subject":35,"predicate":"MEMBER_OF","object":1543},{"subject":35,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1458},{"subject":35,"predicate":"DOCUMENTED_IN","object":38},{"subject":36,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1458},{"subject":36,"predicate":"DOCUMENTED_IN","object":39},{"subject":40,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":41,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1242},{"subject":42,"predicate":"PARTICIPATED_IN","object":1564},{"subject":43,"predicate":"MEMBER_OF","object":1595},{"subject":43,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1385},{"subject":44,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":45,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1216},{"subject":46,"predicate":"MEMBER_OF","object":48},{"subject":46,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1115},{"subject":46,"predicate":"DOCUMENTED_IN","object":47},{"subject":49,"predicate":"DOCUMENTED_IN","object":50},{"subject":51,"predicate":"MEMBER_OF","object":1166},{"subject":51,"predicate":"DOCUMENTED_IN","object":52},{"subject":53,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1148},{"subject":53,"predicate":"DOCUMENTED_IN","object":56},{"subject":54,"predicate":"PARTICIPATED_IN","object":1119},{"subject":54,"predicate":"MEMBER_OF","object":1135},{"subject":54,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":54,"predicate":"DOCUMENTED_IN","object":57},{"subject":54,"predicate":"AUTHORED_BY","object":1713},{"subject":55,"predicate":"PARTICIPATED_IN","object":1119},{"subject":55,"predicate":"MEMBER_OF","object":1135},{"subject":55,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":55,"predicate":"DOCUMENTED_IN","object":58},{"subject":55,"predicate":"AUTHORED_BY","object":1713},{"subject":59,"predicate":"MEMBER_OF","object":1543},{"subject":59,"predicate":"DOCUMENTED_IN","object":60},{"subject":61,"predicate":"MEMBER_OF","object":1120},{"subject":61,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1115},{"subject":61,"predicate":"DOCUMENTED_IN","object":62},{"subject":63,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1156},{"subject":63,"predicate":"DOCUMENTED_IN","object":64},{"subject":65,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1216},{"subject":65,"predicate":"DOCUMENTED_IN","object":68},{"subject":66,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1216},{"subject":66,"predicate":"DOCUMENTED_IN","object":69},{"subject":67,"predicate":"DOCUMENTED_IN","object":70},{"subject":72,"predicate":"MEMBER_OF","object":1166},{"subject":72,"predicate":"DOCUMENTED_IN","object":73},{"subject":74,"predicate":"MEMBER_OF","ob\n... [truncated]\n
+```
+
 ##### SPARQL
 ```sparql
 SELECT ?subject ?predicate ?object
@@ -14942,7 +15017,9 @@ WHERE {
 }
 ```
 
-```json\n{"results":[{"subject":"Bernard","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Bernard","predicate":"DOCUMENTED_IN","object":"43378"},{"subject":"Bernard, Aimé Marcel","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Bernard, Aimé Marcel","predicate":"DOCUMENTED_IN","object":"43628"},{"subject":"Bernard, Albert","predicate":"PARTICIPATED_IN","object":"Batalla de Brunete"},{"subject":"Bernard, Albert","predicate":"MEMBER_OF","object":"Brigada XIV | La Marseillaise | Dumont"},{"subject":"Bernard, Albert","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Bernard, Albert","predicate":"DOCUMENTED_IN","object":"72161"},{"subject":"Berncman, Abram","predicate":"MEMBER_OF","object":"Brigada XIII | Dombrowski | Dąbrowski"},{"subject":"Berncman, Abram","predicate":"DOCUMENTED_IN","object":"54923"},{"subject":"Berne, César","predicate":"MEMBER_OF","object":"Brigada de Tancs"},{"subject":"Berne, César","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Berne, César","predicate":"DOCUMENTED_IN","object":"89333"},{"subject":"Bernegan, Willi","predicate":"MEMBER_OF","object":"35 Divisió"},{"subject":"Bernegan, Willi","predicate":"DOCUMENTED_IN","object":"89334"},{"subject":"Bernstein, Izuck","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Romania"},{"subject":"Bernstein, Izuck","predicate":"DOCUMENTED_IN","object":"85487"},{"subject":"Bernstein, Paul","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Estats Units d'Amèrica"},{"subject":"Bernstein, Paul","predicate":"DOCUMENTED_IN","object":"88242"},{"subject":"Bernstein, Willard","predicate":"DOCUMENTED_IN","object":"89339"},{"subject":"Berro, Saturnino","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Cuba"},{"subject":"Berro, Saturnino","predicate":"DOCUMENTED_IN","object":"16358"},{"subject":"Berrocal Antúnez, Domingo","predicate":"PARTICIPATED_IN","object":"Batalla de Brunete"},{"subject":"Berrocal Antúnez, Domingo","predicate":"MEMBER_OF","object":"Brigada XI | Thaelmann | Hans Beimler"},{"subject":"Berrocal Antúnez, Domingo","predicate":"TREATED_AT","object":"Hospitals de Tarancón"},{"subject":"Berrocal Antúnez, Domingo","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Espanya"},{"subject":"Berrocal Antúnez, Domingo","predicate":"DOCUMENTED_IN","object":"72182"},{"subject":"Berrocal, Álvaro","predicate":"PARTICIPATED_IN","object":"Batalla de Brunete"},{"subject":"Berrocal, Álvaro","predicate":"MEMBER_OF","object":"Brigada XI | Thaelmann | Hans Beimler"},{"subject":"Berrocal, Álvaro","predicate":"DOCUMENTED_IN","object":"72180"},{"subject":"Berti, Mario","predicate":"PARTICIPATED_IN","object":"Front d'Aragó"},{"subject":"Berti, Mario","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Desconegut"},{"subject":"Berti, Mario","predicate":"DOCUMENTED_IN","object":"88234"},{"subject":"Bertin, Georges","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Bertin, Georges","predicate":"DOCUMENTED_IN","object":"89343"},{"subject":"Bertin, Georges","predicate":"AUTHORED_BY","object":"Josep Robert Reig Miro"},{"subject":"Bertin, Samilier","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Desconegut"},{"subject":"Bertin, Samilier","predicate":"DOCUMENTED_IN","object":"89344"},{"subject":"Bertin, Samilier","predicate":"AUTHORED_BY","object":"Josep Robert Reig Miro"},{"subject":"Berzins, Jan Antonovich","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Unió Soviètica"},{"subject":"Berzins, Jan Antonovich","predicate":"DOCUMENTED_IN","object":"1829"},{"subject":"Bescos De Siboni, María Del Pilar","predicate":"MEMBER_OF","object":"Cos de Sanitat"},{"subject":"Bescos De Siboni, María Del Pilar","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Argentina"},{"subject":"Bescos De Siboni, María Del Pilar","predicate":"DOCUMENTED_IN","object":"88007"},{"subject":"Besmertnaia, Sonia","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Argentina"},{"subject":"Besmertnaia, Sonia","predicate":"DOCUMENTED_IN","object":"24047"},{"subject":"Bessières","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Bessmertnaia, Sofía","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Unió Soviètica"},{"subject":"Besson, Pierre","predicate":"PARTICIPATED_IN","object":"Front del Nord"},{"subject":"Beugnier, Alfred","predicate":"MEMBER_OF","object":"Parti Communiste de Belgique (PCB) (Partit Comunista de Bèlgica)"},{"subject":"Beugnier, Alfred","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Bèlgica"},{"subject":"Beure, Joseph","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Beurhler, Reinhold","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Alemanya"},{"subject":"Bhoier, Arwis","predicate":"MEMBER_OF","object":"Brigada XV"},{"subject":"Bhoier, Arwis","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Estats Units d'Amèrica"},{"subject":"Bhoier, Arwis","predicate":"DOCUMENTED_IN","object":"91309"},{"subject":"Bhorteher, Hermann","predicate":"DOCUMENTED_IN","object":"91310"},{"subject":"Bialowas, Hersh","predicate":"MEMB\n... [truncated]\n```
+```Json
+json\n{"results":[{"subject":"Bernard","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Bernard","predicate":"DOCUMENTED_IN","object":"43378"},{"subject":"Bernard, Aimé Marcel","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Bernard, Aimé Marcel","predicate":"DOCUMENTED_IN","object":"43628"},{"subject":"Bernard, Albert","predicate":"PARTICIPATED_IN","object":"Batalla de Brunete"},{"subject":"Bernard, Albert","predicate":"MEMBER_OF","object":"Brigada XIV | La Marseillaise | Dumont"},{"subject":"Bernard, Albert","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Bernard, Albert","predicate":"DOCUMENTED_IN","object":"72161"},{"subject":"Berncman, Abram","predicate":"MEMBER_OF","object":"Brigada XIII | Dombrowski | Dąbrowski"},{"subject":"Berncman, Abram","predicate":"DOCUMENTED_IN","object":"54923"},{"subject":"Berne, César","predicate":"MEMBER_OF","object":"Brigada de Tancs"},{"subject":"Berne, César","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Berne, César","predicate":"DOCUMENTED_IN","object":"89333"},{"subject":"Bernegan, Willi","predicate":"MEMBER_OF","object":"35 Divisió"},{"subject":"Bernegan, Willi","predicate":"DOCUMENTED_IN","object":"89334"},{"subject":"Bernstein, Izuck","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Romania"},{"subject":"Bernstein, Izuck","predicate":"DOCUMENTED_IN","object":"85487"},{"subject":"Bernstein, Paul","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Estats Units d'Amèrica"},{"subject":"Bernstein, Paul","predicate":"DOCUMENTED_IN","object":"88242"},{"subject":"Bernstein, Willard","predicate":"DOCUMENTED_IN","object":"89339"},{"subject":"Berro, Saturnino","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Cuba"},{"subject":"Berro, Saturnino","predicate":"DOCUMENTED_IN","object":"16358"},{"subject":"Berrocal Antúnez, Domingo","predicate":"PARTICIPATED_IN","object":"Batalla de Brunete"},{"subject":"Berrocal Antúnez, Domingo","predicate":"MEMBER_OF","object":"Brigada XI | Thaelmann | Hans Beimler"},{"subject":"Berrocal Antúnez, Domingo","predicate":"TREATED_AT","object":"Hospitals de Tarancón"},{"subject":"Berrocal Antúnez, Domingo","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Espanya"},{"subject":"Berrocal Antúnez, Domingo","predicate":"DOCUMENTED_IN","object":"72182"},{"subject":"Berrocal, Álvaro","predicate":"PARTICIPATED_IN","object":"Batalla de Brunete"},{"subject":"Berrocal, Álvaro","predicate":"MEMBER_OF","object":"Brigada XI | Thaelmann | Hans Beimler"},{"subject":"Berrocal, Álvaro","predicate":"DOCUMENTED_IN","object":"72180"},{"subject":"Berti, Mario","predicate":"PARTICIPATED_IN","object":"Front d'Aragó"},{"subject":"Berti, Mario","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Desconegut"},{"subject":"Berti, Mario","predicate":"DOCUMENTED_IN","object":"88234"},{"subject":"Bertin, Georges","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Bertin, Georges","predicate":"DOCUMENTED_IN","object":"89343"},{"subject":"Bertin, Georges","predicate":"AUTHORED_BY","object":"Josep Robert Reig Miro"},{"subject":"Bertin, Samilier","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Desconegut"},{"subject":"Bertin, Samilier","predicate":"DOCUMENTED_IN","object":"89344"},{"subject":"Bertin, Samilier","predicate":"AUTHORED_BY","object":"Josep Robert Reig Miro"},{"subject":"Berzins, Jan Antonovich","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Unió Soviètica"},{"subject":"Berzins, Jan Antonovich","predicate":"DOCUMENTED_IN","object":"1829"},{"subject":"Bescos De Siboni, María Del Pilar","predicate":"MEMBER_OF","object":"Cos de Sanitat"},{"subject":"Bescos De Siboni, María Del Pilar","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Argentina"},{"subject":"Bescos De Siboni, María Del Pilar","predicate":"DOCUMENTED_IN","object":"88007"},{"subject":"Besmertnaia, Sonia","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Argentina"},{"subject":"Besmertnaia, Sonia","predicate":"DOCUMENTED_IN","object":"24047"},{"subject":"Bessières","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Bessmertnaia, Sofía","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Unió Soviètica"},{"subject":"Besson, Pierre","predicate":"PARTICIPATED_IN","object":"Front del Nord"},{"subject":"Beugnier, Alfred","predicate":"MEMBER_OF","object":"Parti Communiste de Belgique (PCB) (Partit Comunista de Bèlgica)"},{"subject":"Beugnier, Alfred","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Bèlgica"},{"subject":"Beure, Joseph","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Beurhler, Reinhold","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Alemanya"},{"subject":"Bhoier, Arwis","predicate":"MEMBER_OF","object":"Brigada XV"},{"subject":"Bhoier, Arwis","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Estats Units d'Amèrica"},{"subject":"Bhoier, Arwis","predicate":"DOCUMENTED_IN","object":"91309"},{"subject":"Bhorteher, Hermann","predicate":"DOCUMENTED_IN","object":"91310"},{"subject":"Bialowas, Hersh","predicate":"MEMB\n... [truncated]\n
+```
 
 ##### Server (SPARQL via API)
 ```bash
@@ -15032,7 +15109,10 @@ SKIP 0
 LIMIT 25;
 ```
 
-```json\n{"results":[{"subject":2,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":2,"predicate":"DOCUMENTED_IN","object":5},{"subject":3,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":3,"predicate":"DOCUMENTED_IN","object":6},{"subject":4,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":4,"predicate":"DOCUMENTED_IN","object":7},{"subject":4,"predicate":"MEMBER_OF","object":1135},{"subject":4,"predicate":"PARTICIPATED_IN","object":1119},{"subject":8,"predicate":"DOCUMENTED_IN","object":9},{"subject":8,"predicate":"MEMBER_OF","object":1166},{"subject":10,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":10,"predicate":"DOCUMENTED_IN","object":12},{"subject":10,"predicate":"MEMBER_OF","object":11},{"subject":13,"predicate":"DOCUMENTED_IN","object":15},{"subject":13,"predicate":"MEMBER_OF","object":14},{"subject":16,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1664},{"subject":16,"predicate":"DOCUMENTED_IN","object":17},{"subject":18,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1115},{"subject":18,"predicate":"DOCUMENTED_IN","object":19},{"subject":20,"predicate":"DOCUMENTED_IN","object":21},{"subject":22,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1206},{"subject":22,"predicate":"DOCUMENTED_IN","object":25},{"subject":23,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1123},{"subject":23,"predicate":"DOCUMENTED_IN","object":26},{"subject":23,"predicate":"MEMBER_OF","object":1292}],"columns":["subject","predicate","object"]}\n```
+###### Results:
+```Json
+json\n{"results":[{"subject":2,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":2,"predicate":"DOCUMENTED_IN","object":5},{"subject":3,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":3,"predicate":"DOCUMENTED_IN","object":6},{"subject":4,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":4,"predicate":"DOCUMENTED_IN","object":7},{"subject":4,"predicate":"MEMBER_OF","object":1135},{"subject":4,"predicate":"PARTICIPATED_IN","object":1119},{"subject":8,"predicate":"DOCUMENTED_IN","object":9},{"subject":8,"predicate":"MEMBER_OF","object":1166},{"subject":10,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":10,"predicate":"DOCUMENTED_IN","object":12},{"subject":10,"predicate":"MEMBER_OF","object":11},{"subject":13,"predicate":"DOCUMENTED_IN","object":15},{"subject":13,"predicate":"MEMBER_OF","object":14},{"subject":16,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1664},{"subject":16,"predicate":"DOCUMENTED_IN","object":17},{"subject":18,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1115},{"subject":18,"predicate":"DOCUMENTED_IN","object":19},{"subject":20,"predicate":"DOCUMENTED_IN","object":21},{"subject":22,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1206},{"subject":22,"predicate":"DOCUMENTED_IN","object":25},{"subject":23,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1123},{"subject":23,"predicate":"DOCUMENTED_IN","object":26},{"subject":23,"predicate":"MEMBER_OF","object":1292}],"columns":["subject","predicate","object"]}\n
+```
 
 ##### SPARQL
 ```sparql
@@ -15044,7 +15124,7 @@ ORDER BY ?subject ?predicate ?object
 LIMIT 25
 OFFSET 0
 ```
-
+###### Results:
 ```json\nSTATUS: 500\nInternal Server Error\n```
 
 ##### Server (SPARQL via API)
@@ -15597,6 +15677,30 @@ STATUS: 404
 ```
 
 # Summary
+## Update - Test 7 (Database-level metadata) from latest run
+
+| Query | Cypher | SPARQL | Note |
+|---|---|---|---|
+| 1. Show databases | `500` (`Internal Server Error`) | `500` (`Internal Server Error`) | Both recorded as backend execution errors. |
+| 2. Labels / relationship types / property keys | `200` (labels returned: `Chunk`, `Country`, `Document`, `Event`, `Location`, `MassGrave`, `Organization`, `Person`) | `500` (`Internal Server Error`) | Cypher succeeded; SPARQL failed in this run. |
+| 3. Node schema by label+property | `404` (`page not found`) | `404` (`page not found`) | Endpoint routing/path error recorded. |
+| 4. All property keys | `404` (`page not found`) | `404` (`page not found`) | Endpoint routing/path error recorded. |
+| 5. Relationship schema by type+property | `404` (`page not found`) | `404` (`page not found`) | Endpoint routing/path error recorded. |
+| 6. Node property coverage by label | `404` (`page not found`) | `404` (`page not found`) | Endpoint routing/path error recorded. |
+
+Interpretation: in this latest execution, only **Query 2 (Cypher)** returned data; all other newly filled Test 7 result blocks recorded explicit runtime errors (`500`) or route errors (`404`).
+
+### Objective-based interpretation (what works vs what does not)
+
+- **Works (fully or partially)**:
+  - The objective of obtaining a **high-level structural inventory** is **partially achieved** in `Query 2`, because Cypher returned the expected label list (`Chunk`, `Country`, `Document`, `Event`, `Location`, `MassGrave`, `Organization`, `Person`), even though SPARQL failed.
+- **Does not work (objective not achieved in current run)**:
+  - `Query 1` (confirm database context) failed in both Cypher and SPARQL (`500`), so environment confirmation could not be completed.
+  - `Query 3` (node schema consistency), `Query 4` (global property vocabulary), `Query 5` (relationship schema consistency), and `Query 6` (node property coverage) all failed with `404` in both query languages, so these schema-quality objectives remain unverified.
+- **Practical conclusion for this run**:
+  - Only a **basic label-level structural check** is currently reproducible (via Cypher in `Query 2`).
+  - All deeper metadata/schema validation objectives should be treated as **inconclusive due to backend/route instability**, not as evidence of missing data in the graph itself.
+
 ## Searches compared
 
 | Objective          | task                                  | Cypher                     | SPARQL                                | Server |
