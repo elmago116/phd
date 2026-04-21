@@ -1,3 +1,8 @@
+---
+tags:
+  - op/test
+date: 2026-04-17
+---
 # 1. Server - via API - UI
 
 ## Test 0 - predefined queries
@@ -18,7 +23,7 @@ LIMIT 30
 > Clarify Q108163, P1476> Miquel
 
 #### Results
-```Json
+```json
 [
   {
     "node": "A Tocar Del Cementiri De Sant Romà D'abella",
@@ -190,7 +195,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 #### Results:
-```Json
+```json
 STATUS: 500
 Internal Server Error
 ```
@@ -214,7 +219,7 @@ First try:
 Error: Request failed with status code 500
 ```
 Second: 
-```Json
+```json
 [
   {
     "node": "Aalto, William",
@@ -418,7 +423,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 #### Results:
-```Json
+```json
 STATUS: 500
 Internal Server Error
 ```
@@ -437,7 +442,7 @@ LIMIT 30
 ```
 
 #### Response with limit
-```Json
+```json
 [
   {
     "node": "A Tocar Del Cementiri De Sant Romà D'abella",
@@ -593,7 +598,7 @@ LIMIT 30
 ```
 
 Response without limit
-```Json
+```json
 [
   {
     "node": "A Tocar Del Cementiri De Sant Romà D'abella",
@@ -6683,7 +6688,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 #### Results:
-```Json
+```json
 STATUS: 500
 Internal Server Error
 ```
@@ -6708,7 +6713,7 @@ ORDER BY ?type
 ```
 #### Results
 First time
-```Json
+```json
 [
   {
     "node": "A Tocar Del Cementiri De Sant Romà D'abella",
@@ -12786,7 +12791,7 @@ First time
 > does this data answers the query correctly?
 
 Second time:
-```Json
+```json
 [
   {
     "type": "Person",
@@ -12837,7 +12842,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 #### Results:
-```Json
+```json
 {
   "results": [
     {
@@ -12874,7 +12879,7 @@ LIMIT 20
 ```
 
 #### Results
-```Json
+```json
 [
   {
     "type": "Person",
@@ -12921,7 +12926,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 #### Results:
-```Json
+```json
 {
   "results": [
     {
@@ -13012,7 +13017,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 #### Results 1:
-```Json
+```json
 STATUS: 500
 Internal Server Error
 ```
@@ -13099,7 +13104,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 #### Results:
-```Json
+```json
 STATUS: 500
 Internal Server Error
 ```
@@ -13173,7 +13178,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 #### Results:
-```Json
+```json
 STATUS: 500
 Internal Server Error
 ```
@@ -13239,13 +13244,13 @@ curl --fail-with-body --silent --show-error \
   }'
 ```
 
-#### Results:
-```Json
+#### Results 1:
+```json
 STATUS: 500
 Internal Server Error
 ```
 
-#### Server results (JSON)
+#### Results 2
 ```
 curl --fail-with-body --silent --show-error \
   -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
@@ -13678,7 +13683,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 ##### Results:
-```Json
+```json
 curl: (22) The requested URL returned error: 500
 Internal Server Error%               
 ```
@@ -13734,7 +13739,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 #### Results:
-```Json
+```json
 STATUS: 500
 Internal Server Error
 ```
@@ -13752,7 +13757,7 @@ ORDER BY label, nodesWithProperty DESC, propertyName;
 ```
 
 #### Cypher results (JSON)
-```Json
+```json
 [
   {
     "relType": "LOCATED_IN",
@@ -13914,7 +13919,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 #### Results:
-```Json
+```json
 STATUS: 500
 Internal Server Error
 ```
@@ -13936,7 +13941,7 @@ RETURN
 ```
 
 ##### Cypher results (JSON)
-```Json
+```json
 [
   {
     "totalRelationships": 4482,
@@ -13956,7 +13961,7 @@ GROUP BY ?predicate
 ORDER BY DESC(?edges)
 ```
 
-##### SPARQL results (JSON)
+##### SPARQL results (JSON) #op 
 ```json
 ```
 
@@ -13974,7 +13979,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 ##### Results:
-```Json
+```json
 STATUS: 500
 Internal Server Error
 ```
@@ -14012,7 +14017,7 @@ Error: timeout of 30000ms exceeded
 ```
 
 #### Results:
-```Json
+```json
 ```
 
 ### Query 2 - Labels, relationship types, property keys (structural overview)
@@ -14212,6 +14217,7 @@ ORDER BY count DESC;
 
 ##### Cypher results (JSON)
 ```json
+Error: Request failed with status code 500
 ```
 
 #### SPARQL
@@ -14233,7 +14239,7 @@ ORDER BY DESC(?count)
 ```
 
 ##### Results
-```Json
+```json
 
 ```
 
@@ -14251,7 +14257,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 ##### Results:
-```Json
+```json
 STATUS: 404
 404 page not found
 ```
@@ -14260,6 +14266,21 @@ STATUS: 404
 ### Test A2 - Fosas comunes required fields completeness
 
 Objective: validate required mapped fields (`name/title`, `country`, and at least one location field) for mass-grave entities.
+
+#### Cypher
+```cypher
+MATCH (g)
+WHERE any(lbl IN labels(g) WHERE lbl IN ["MassGrave","Q108163"])
+RETURN
+  count(DISTINCT g) AS totalMassGraves,
+  count(DISTINCT CASE WHEN g.P1476 IS NOT NULL THEN g END) AS withName,
+  count(DISTINCT CASE WHEN g.P17 IS NOT NULL THEN g END) AS withCountry,
+  count(DISTINCT CASE WHEN g.P131 IS NOT NULL OR g.P276 IS NOT NULL THEN g END) AS withAdminLocation;
+```
+
+##### Cypher results (JSON)
+```json
+```
 
 #### Platform (SPARQL)
 ```sparql
@@ -14281,7 +14302,7 @@ WHERE {
 }
 ```
 ##### Results
-```Json
+```json
 
 ```
 #### Server (API)
@@ -14298,7 +14319,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 ##### Results:
-```Json
+```json
 STATUS: 404
 404 page not found
 ```
@@ -14307,6 +14328,21 @@ STATUS: 404
 ### Test A3 - Fosas comunes coordinate integrity (P625)
 
 Objective: detect mass-grave records with malformed coordinate literals.
+
+#### Cypher
+```cypher
+MATCH (g)
+WHERE any(lbl IN labels(g) WHERE lbl IN ["MassGrave","Q108163"])
+  AND g.P625 IS NOT NULL
+WITH g, toString(g.P625) AS coord
+WHERE NOT coord =~ "^-?([0-8]?\\d(\\.\\d+)?|90(\\.0+)?),\\s*-?((1[0-7]\\d)|(\\d?\\d))(\\.\\d+)?|180(\\.0+)?$"
+RETURN g, coord
+LIMIT 100;
+```
+
+##### Cypher results (JSON)
+```json
+```
 
 #### Platform (SPARQL)
 ```sparql
@@ -14321,7 +14357,7 @@ WHERE {
 LIMIT 100
 ```
 ##### Results
-```Json
+```json
 
 ```
 #### Server (API)
@@ -14338,7 +14374,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 ##### Results:
-```Json
+```json
 STATUS: 404
 404 page not found
 ```
@@ -14347,6 +14383,20 @@ STATUS: 404
 ### Test B1 - SIDBRINT person integrity
 
 Objective: validate that person entities include core identity fields (label and at least one temporal marker).
+
+#### Cypher
+```cypher
+MATCH (p)
+WHERE any(lbl IN labels(p) WHERE lbl IN ["Person","Q5"])
+RETURN
+  count(DISTINCT p) AS totalPersons,
+  count(DISTINCT CASE WHEN p.P1476 IS NOT NULL THEN p END) AS withLabel,
+  count(DISTINCT CASE WHEN p.P569 IS NOT NULL OR p.P570 IS NOT NULL THEN p END) AS withBirthOrDeath;
+```
+
+##### Cypher results (JSON)
+```json
+```
 
 #### Platform (SPARQL)
 ```sparql
@@ -14366,7 +14416,7 @@ WHERE {
 }
 ```
 ##### Results
-```Json
+```json
 
 ```
 #### Server (API)
@@ -14383,7 +14433,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 ##### Results:
-```Json
+```json
 STATUS: 404
 404 page not found
 ```
@@ -14392,6 +14442,19 @@ STATUS: 404
 ### Test C1 - Cultura y censura document integrity
 
 Objective: verify document-class entities and minimal descriptive metadata.
+
+#### Cypher
+```cypher
+MATCH (d)
+WHERE any(lbl IN labels(d) WHERE lbl IN ["Document","Q49848"])
+RETURN
+  count(DISTINCT d) AS totalDocuments,
+  count(DISTINCT CASE WHEN d.P1476 IS NOT NULL THEN d END) AS withTitle;
+```
+
+##### Cypher results (JSON)
+```json
+```
 
 #### Platform (SPARQL)
 ```sparql
@@ -14404,7 +14467,7 @@ WHERE {
 }
 ```
 ##### Results
-```Json
+```json
 
 ```
 
@@ -14422,7 +14485,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 ##### Results:
-```Json
+```json
 STATUS: 404
 404 page not found
 ```
@@ -14431,6 +14494,22 @@ STATUS: 404
 ### Test X1 - Cross-source duplicate candidates by normalized title
 
 Objective: detect potential duplicate entities generated by multi-source ingest.
+
+#### Cypher
+```cypher
+MATCH (n)
+WHERE n.P1476 IS NOT NULL
+WITH toLower(replace(replace(replace(toString(n.P1476), " ", ""), "-", ""), ".", "")) AS normalizedLabel, n
+WITH normalizedLabel, count(DISTINCT n) AS nodes
+WHERE nodes > 1
+RETURN normalizedLabel, nodes
+ORDER BY nodes DESC
+LIMIT 100;
+```
+
+##### Cypher results (JSON)
+```json
+```
 
 #### Platform (SPARQL)
 ```sparql
@@ -14445,7 +14524,7 @@ ORDER BY DESC(?nodes)
 LIMIT 100
 ```
 ##### Results
-```Json
+```json
 
 ```
 #### Server (API)
@@ -14462,7 +14541,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 ##### Results:
-```Json
+```json
 STATUS: 404
 404 page not found
 ```
@@ -14471,6 +14550,20 @@ STATUS: 404
 ### Test X2 - Type conflict check per entity
 
 Objective: detect nodes with unusually high class multiplicity (possible merge errors).
+
+#### Cypher
+```cypher
+MATCH (n)
+WITH n, size(labels(n)) AS typeCount
+WHERE typeCount > 3
+RETURN n, typeCount
+ORDER BY typeCount DESC
+LIMIT 100;
+```
+
+##### Cypher results (JSON)
+```json
+```
 
 #### Platform (SPARQL)
 ```sparql
@@ -14484,7 +14577,7 @@ ORDER BY DESC(?typeCount)
 LIMIT 100
 ```
 ##### Results
-```Json
+```json
 
 ```
 #### Server (API)
@@ -14501,7 +14594,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 ##### Results:
-```Json
+```json
 STATUS: 404
 404 page not found
 ```
@@ -14525,7 +14618,7 @@ RETURN id(subject) AS subject, type(r) AS predicate, id(object) AS object;
 ```
 
 ###### Results
-```Json
+```json
 
 ```
 ##### SPARQL
@@ -14537,7 +14630,7 @@ WHERE {
 ```
 
 ###### Results
-```Json
+```json
 
 ```
 
@@ -14555,7 +14648,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 ###### Results:
-```Json
+```json
 STATUS: 500
 Internal Server Error
 ```
@@ -14575,7 +14668,7 @@ LIMIT 50;
 ```
 
 ###### Results
-```Json
+```json
 
 ```
 
@@ -14594,7 +14687,7 @@ WHERE {
 LIMIT 50
 ```
 ###### Results
-```Json
+```json
 
 ```
 
@@ -14612,7 +14705,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 ###### Results:
-```Json
+```json
 STATUS: 500
 Internal Server Error
 ```
@@ -14632,7 +14725,7 @@ LIMIT 25;
 ```
 
 ###### Results
-```Json
+```json
 
 ```
 
@@ -14648,7 +14741,7 @@ OFFSET 0
 ```
 
 ###### Results
-```Json
+```json
 
 ```
 
@@ -14666,7 +14759,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 ###### Results:
-```Json
+```json
 STATUS: 404
 404 page not found
 ```
@@ -14687,7 +14780,7 @@ LIMIT 1
 RETURN count(*) > 0 AS result;
 ```
 ###### Results
-```Json
+```json
 
 ```
 
@@ -14699,7 +14792,7 @@ WHERE {
 }
 ```
 ###### Results
-```Json
+```json
 
 ```
 
@@ -14717,7 +14810,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 ###### Results:
-```Json
+```json
 STATUS: 404
 404 page not found
 ```
@@ -14735,7 +14828,7 @@ LIMIT 1
 RETURN count(*) > 0 AS result;
 ```
 ###### Results
-```Json
+```json
 
 ```
 
@@ -14750,7 +14843,7 @@ WHERE {
 }
 ```
 ###### Results
-```Json
+```json
 
 ```
 
@@ -14768,7 +14861,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 ###### Results:
-```Json
+```json
 STATUS: 404
 404 page not found
 ```
@@ -14826,7 +14919,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 ###### Results:
-```Json
+```json
 STATUS: 404
 404 page not found
 ```
@@ -14869,7 +14962,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 ###### Results:
-```Json
+```json
 STATUS: 404
 404 page not found
 ```
@@ -14923,7 +15016,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 ###### Results:
-```Json
+```json
 STATUS: 404
 404 page not found
 ```
@@ -14970,7 +15063,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 ###### Results:
-```Json
+```json
 STATUS: 404
 404 page not found
 ```
@@ -15023,7 +15116,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 ###### Results:
-```Json
+```json
 STATUS: 404
 404 page not found
 ```
@@ -15076,7 +15169,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 ###### Results:
-```Json
+```json
 STATUS: 404
 404 page not found
 ```
@@ -15130,7 +15223,7 @@ curl --fail-with-body --silent --show-error \
 ```
 
 ###### Results:
-```Json
+```json
 STATUS: 404
 404 page not found
 ```
@@ -15190,12 +15283,51 @@ curl --fail-with-body --silent --show-error \
 ```
 
 ###### Results:
-```Json
+```json
 STATUS: 404
 404 page not found
 ```
 
 # Summary
+## Searches compared
+
+| Objective | task | Cypher | SPARQL | Server |
+| --------- | ---- | ------ | ------ | ------ |
+| 1. SELECT | Triple-pattern retrieval (`?s ?p ?o`) | Success | Mixed (`timeout` first, then success) | `500` |
+| 2. FILTER | String filter (`brigadista`) | Success (`[]`, no matches) | `500` | `500` |
+| 3. LIMIT/OFFSET | Ordered pagination | Success | `timeout` | `404` |
+| 4. ASK | Existence checks | Success | Mixed (one `timeout`, one success) | `404` |
+| 5. COUNT (ext) | Node/relationship counting | Success | Failed (`timeout` / `500`) | `404` |
+| 6. CONSTRUCT | Graph-shaped export | Success | `timeout` | `404` |
+| 7. DESCRIBE | Entity-centric inspection | Success | Success (minimal payload) | `404` |
+| 8. FILTER (retest) | String filter (repeat block) | Success (`[]`, no matches) | `500` | `404` |
+| 9. ORDER BY | Stable sorting | `500` | `timeout` | `404` |
+| 9b. GROUP BY | Type distribution | Success | Empty result block | `404` |
+| 10. AGGREGATIONS | Multi-metric aggregation | Empty result block | Empty result block | `404` |
+
+## Server access assessment (live re-check)
+
+A live replay of all `Server (SPARQL via API)` blocks showed mixed but degraded operability: previous manual re-checks recovered valid responses in selected queries (e.g., ASK/COUNT/GROUP BY/AGGREGATIONS), but the full sequential replay updated in this document ended with `0/13` successful responses (`500` in the first blocks and then mostly `404`). This indicates the endpoint is reachable but currently unstable or inconsistently routed/authenticated across requests, so server-side results should be treated as non-reproducible until backend configuration is stabilized.
+
+## Server queries that returned data (live checks)
+
+| Query block | Query intent | Status | Data recovered (preview) |
+|---|---|---|---|
+| 4. ASK queries (variant 1) | Generic existence check (`ASK WHERE { ?s ?p ?o }`) | `200` | `true` |
+| 5. COUNT queries (extended) - count nodes | Distinct node count | `200` | `count = 2867` |
+| 5. COUNT queries (extended) - count relationships | Relationship count | `200` | `count = 4482` |
+| 6. CONSTRUCT | Triple payload export | `200` | Rows returned (`subject`, `predicate`, `object`) |
+| GROUP BY | Count by type/label | `200` | `Person 1029`, `Document 724`, `MassGrave 492`, ... |
+| 10. AGGREGATIONS | Multi-metric totals | `200` | `nodeCount = 2890`, `relCount = 4482` |
+
+### Probable causes for missing results in other server queries
+
+- **Backend route/proxy instability**: repeated `404 page not found` in protocol/advanced suites suggests endpoint routing mismatch or intermittent gateway mapping.
+- **Server-side execution failures**: repeated `500 Internal Server Error` in SELECT/FILTER and early test blocks indicates query-handler crashes before returning payloads.
+- **Query translation limits**: failing blocks concentrate in operations that often require extra translation logic (`ORDER BY`, `DESCRIBE`, complex FILTER variants).
+- **Session/auth inconsistency across runs**: some manual checks returned `200`, but full sequential replay returned `0/13`, suggesting non-deterministic auth/routing context.
+- **Operational instability (non-reproducibility)**: contradictory outcomes over short intervals indicate unstable backend state rather than only query syntax errors.
+
 ### Server query errors map
 
 | Block | Server query scope | Error |
@@ -15213,6 +15345,28 @@ STATUS: 404
 
 
 
+
+
+## Cypher vs SPARQL data evaluation
+
+### Evidence-based comparison
+
+| Dimension | Cypher | SPARQL | Assessment |
+|---|---|---|---|
+| Query success rate (recorded blocks) | High in core blocks (SELECT, LIMIT/OFFSET, ASK, COUNT, CONSTRUCT, GROUP BY, DESCRIBE) with some failures (`ORDER BY`, empty AGGREGATIONS block) | Lower and unstable (timeouts/`500` in multiple blocks; one minimal DESCRIBE success; some empty result blocks) | **Cypher stronger** for reproducible execution in current environment |
+| Data completeness in returned payloads | Rich graph payloads and structured tabular outputs (e.g., CONSTRUCT, GROUP BY counts) | Often incomplete due to timeout/failure; when successful, payloads may be minimal | **Cypher stronger** for actionable data extraction |
+| Consistency across repeated intents | Generally consistent in successful blocks (counts and structure aligned internally) | Mixed behavior across equivalent intents (success in isolated checks, failures in many logged tests) | **Cypher stronger** for consistency |
+| Operational robustness | Some degradation but still usable for most analytical checks | Frequent timeout/failure under comparable operations | **Cypher stronger** for robustness |
+
+### Interpreted result
+
+For this test corpus and run context, **Cypher is currently the primary reliable method** for data retrieval and validation. **SPARQL remains partially usable** but non-reproducible under several core/advanced operations, so SPARQL-derived conclusions should be treated as provisional unless revalidated after backend stabilization.
+
+### Minimal decision rule for next runs
+
+- Use **Cypher-first** for baseline metrics, ingestion validation, and curation diagnostics.
+- Use **SPARQL as confirmatory/parallel check** only where responses are stable.
+- Mark any SPARQL timeout/`500`/empty block as **inconclusive** (not negative evidence about data content).
 
 # Evaluation framework (complement to query tests)
 
