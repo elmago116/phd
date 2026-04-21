@@ -1,8 +1,3 @@
----
-tags:
-  - op/test
-date: 2026-04-17
----
 # 1. Server - via API - UI
 
 ## Test 0 - predefined queries
@@ -14988,6 +14983,469 @@ STATUS: 404
 ```
 
 
+# 2. Gender-aware and socio-economic status validation block
+
+Purpose: evaluate whether gender/sex and social-economic signals are present and usable across ingested sources, aligned with source metadata models (for example SIDBRINT `P21` sex/gender and `P106` occupation; Censura `genero_*` fields).
+
+### Test G1 - Sex/gender footprint (P21 and lexical variants)
+
+Objective: verify that sex/gender is explicitly represented and measurable in person-like entities.
+
+#### Cypher
+```cypher
+MATCH (p)
+WHERE any(lbl IN labels(p) WHERE lbl IN ["Person","Q5"])
+WITH p,
+     coalesce(
+       toString(p.P21),
+       toString(p.gender),
+       toString(p.genero),
+       toString(p.sexo),
+       toString(p.field_brigadista_genere),
+       toString(p.genero_editor),
+       toString(p.genero_importador),
+       toString(p.genero_lector),
+       toString(p.genero_proveedor_papel)
+     ) AS genderValue
+WHERE genderValue IS NOT NULL AND trim(genderValue) <> ""
+RETURN genderValue, count(DISTINCT p) AS persons
+ORDER BY persons DESC, genderValue;
+```
+
+##### Cypher results (JSON) #op
+```json
+{
+  "status": "error",
+  "errorType": "ExecutionBlocked",
+  "error": "Could not execute in this run",
+  "details": "Browser query editor returned stale element references repeatedly during automation."
+}
+```
+
+#### Cypher (Neo4j 5)
+```cypher
+MATCH (p)
+WHERE p:Person OR p:Q5
+WITH p,
+     coalesce(
+       toString(p.P21),
+       toString(p.gender),
+       toString(p.genero),
+       toString(p.sexo),
+       toString(p.field_brigadista_genere),
+       toString(p.genero_editor),
+       toString(p.genero_importador),
+       toString(p.genero_lector),
+       toString(p.genero_proveedor_papel)
+     ) AS genderValue
+WHERE genderValue IS NOT NULL AND trim(genderValue) <> ""
+RETURN genderValue, count(DISTINCT p) AS persons
+ORDER BY persons DESC, genderValue;
+```
+
+##### Cypher (Neo4j 5) results (JSON) #op
+```json
+{
+  "status": "error",
+  "errorType": "ExecutionBlocked",
+  "error": "Could not execute in this run",
+  "details": "Browser query editor returned stale element references repeatedly during automation."
+}
+```
+
+#### SPARQL
+```sparql
+SELECT ?genderValue (COUNT(DISTINCT ?p) AS ?persons)
+WHERE {
+  ?p ?prop ?genderRaw .
+  FILTER(
+    ?prop = <http://www.wikidata.org/prop/direct/P21>
+    || REGEX(STR(?prop), "gender|genero|g[eè]nere|sexo", "i")
+  )
+  BIND(LCASE(STR(?genderRaw)) AS ?genderValue)
+  FILTER(STRLEN(?genderValue) > 0)
+}
+GROUP BY ?genderValue
+ORDER BY DESC(?persons) ?genderValue
+```
+
+##### SPARQL results (JSON) #op
+```json
+{
+  "status": "error",
+  "errorType": "TimeoutError",
+  "error": "The read operation timed out",
+  "details": "Executed against https://ubxat.peninsula.co/cognitive/api/v1/sparql with provided credentials."
+}
+```
+
+#### Server (SPARQL via API)
+```bash
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "SELECT ?genderValue (COUNT(DISTINCT ?p) AS ?persons) WHERE { ?p ?prop ?genderRaw . FILTER(?prop = <http://www.wikidata.org/prop/direct/P21> || REGEX(STR(?prop), \"gender|genero|g[eè]nere|sexo\", \"i\")) BIND(LCASE(STR(?genderRaw)) AS ?genderValue) FILTER(STRLEN(?genderValue) > 0) } GROUP BY ?genderValue ORDER BY DESC(?persons) ?genderValue",
+    "format": "json"
+  }'
+```
+
+##### Results:
+```json
+{
+  "status": "error",
+  "errorType": "MissingCredentials",
+  "error": "UBXAT_USER and/or UBXAT_PASSWORD not set in terminal environment",
+  "details": "Server API execution skipped."
+}
+```
+
+### Test G2 - Missing sex/gender coverage in person entities
+
+Objective: quantify person records lacking explicit gender/sex values (critical for bias-aware analysis).
+
+#### Cypher
+```cypher
+MATCH (p)
+WHERE any(lbl IN labels(p) WHERE lbl IN ["Person","Q5"])
+WITH count(DISTINCT p) AS totalPersons,
+     count(DISTINCT CASE
+       WHEN coalesce(
+         p.P21, p.gender, p.genero, p.sexo, p.field_brigadista_genere,
+         p.genero_editor, p.genero_importador, p.genero_lector, p.genero_proveedor_papel
+       ) IS NOT NULL THEN p END) AS withGender
+RETURN totalPersons, withGender, (totalPersons - withGender) AS missingGender;
+```
+
+##### Cypher results (JSON) #op
+```json
+{
+  "status": "error",
+  "errorType": "ExecutionBlocked",
+  "error": "Could not execute in this run",
+  "details": "Browser query editor returned stale element references repeatedly during automation."
+}
+```
+
+#### Cypher (Neo4j 5)
+```cypher
+MATCH (p)
+WHERE p:Person OR p:Q5
+WITH count(DISTINCT p) AS totalPersons,
+     count(DISTINCT CASE
+       WHEN coalesce(
+         p.P21, p.gender, p.genero, p.sexo, p.field_brigadista_genere,
+         p.genero_editor, p.genero_importador, p.genero_lector, p.genero_proveedor_papel
+       ) IS NOT NULL THEN p END) AS withGender
+RETURN totalPersons, withGender, (totalPersons - withGender) AS missingGender;
+```
+
+##### Cypher (Neo4j 5) results (JSON) #op
+```json
+{
+  "status": "error",
+  "errorType": "ExecutionBlocked",
+  "error": "Could not execute in this run",
+  "details": "Browser query editor returned stale element references repeatedly during automation."
+}
+```
+
+#### SPARQL
+```sparql
+SELECT
+  (COUNT(DISTINCT ?p) AS ?totalPersons)
+  (COUNT(DISTINCT ?pWithGender) AS ?withGender)
+  ((COUNT(DISTINCT ?p) - COUNT(DISTINCT ?pWithGender)) AS ?missingGender)
+WHERE {
+  ?p <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?personType .
+  FILTER(REGEX(STR(?personType), "Q5|Person", "i"))
+  OPTIONAL {
+    ?p ?gProp ?gVal .
+    FILTER(
+      ?gProp = <http://www.wikidata.org/prop/direct/P21>
+      || REGEX(STR(?gProp), "gender|genero|g[eè]nere|sexo", "i")
+    )
+    FILTER(STRLEN(STR(?gVal)) > 0)
+    BIND(?p AS ?pWithGender)
+  }
+}
+```
+
+##### SPARQL results (JSON) #op
+```json
+{
+  "status": "error",
+  "errorType": "ExecutionBlocked",
+  "error": "Could not execute in this run",
+  "details": "Browser query editor returned stale element references repeatedly during automation."
+}
+```
+
+#### Server (SPARQL via API)
+```bash
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "SELECT (COUNT(DISTINCT ?p) AS ?totalPersons) (COUNT(DISTINCT ?pWithGender) AS ?withGender) ((COUNT(DISTINCT ?p) - COUNT(DISTINCT ?pWithGender)) AS ?missingGender) WHERE { ?p <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?personType . FILTER(REGEX(STR(?personType), \"Q5|Person\", \"i\")) OPTIONAL { ?p ?gProp ?gVal . FILTER(?gProp = <http://www.wikidata.org/prop/direct/P21> || REGEX(STR(?gProp), \"gender|genero|g[eè]nere|sexo\", \"i\")) FILTER(STRLEN(STR(?gVal)) > 0) BIND(?p AS ?pWithGender) } }",
+    "format": "json"
+  }'
+```
+
+##### Results:
+```json
+{
+  "status": "error",
+  "errorType": "MissingCredentials",
+  "error": "UBXAT_USER and/or UBXAT_PASSWORD not set in terminal environment",
+  "details": "Server API execution skipped."
+}
+```
+
+### Test G3 - Occupation/profession coverage by gender proxy
+
+Objective: detect whether social/economic proxy fields (occupation/profession, e.g. `P106`) are unevenly populated across gender groups.
+
+#### Cypher
+```cypher
+MATCH (p)
+WHERE any(lbl IN labels(p) WHERE lbl IN ["Person","Q5"])
+WITH p,
+     coalesce(toString(p.P21), toString(p.gender), toString(p.genero), toString(p.sexo), "unknown") AS genderGroup,
+     coalesce(
+       toString(p.P106),
+       toString(p.occupation),
+       toString(p.profession),
+       toString(p.profesion),
+       toString(p.oficio),
+       ""
+     ) AS occupationValue
+RETURN genderGroup,
+       count(DISTINCT p) AS persons,
+       count(DISTINCT CASE WHEN trim(occupationValue) <> "" THEN p END) AS withOccupation
+ORDER BY persons DESC, genderGroup;
+```
+
+##### Cypher results (JSON) #op
+```json
+{
+  "status": "error",
+  "errorType": "ExecutionBlocked",
+  "error": "Could not execute in this run",
+  "details": "Browser query editor returned stale element references repeatedly during automation."
+}
+```
+
+#### Cypher (Neo4j 5)
+```cypher
+MATCH (p)
+WHERE p:Person OR p:Q5
+WITH p,
+     coalesce(toString(p.P21), toString(p.gender), toString(p.genero), toString(p.sexo), "unknown") AS genderGroup,
+     coalesce(
+       toString(p.P106),
+       toString(p.occupation),
+       toString(p.profession),
+       toString(p.profesion),
+       toString(p.oficio),
+       ""
+     ) AS occupationValue
+RETURN genderGroup,
+       count(DISTINCT p) AS persons,
+       count(DISTINCT CASE WHEN trim(occupationValue) <> "" THEN p END) AS withOccupation
+ORDER BY persons DESC, genderGroup;
+```
+
+##### Cypher (Neo4j 5) results (JSON) #op
+```json
+{
+  "status": "error",
+  "errorType": "ExecutionBlocked",
+  "error": "Could not execute in this run",
+  "details": "Browser query editor returned stale element references repeatedly during automation."
+}
+```
+
+#### SPARQL
+```sparql
+SELECT ?genderGroup
+       (COUNT(DISTINCT ?p) AS ?persons)
+       (COUNT(DISTINCT ?pOcc) AS ?withOccupation)
+WHERE {
+  ?p <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?personType .
+  FILTER(REGEX(STR(?personType), "Q5|Person", "i"))
+
+  OPTIONAL {
+    ?p ?gProp ?gVal .
+    FILTER(
+      ?gProp = <http://www.wikidata.org/prop/direct/P21>
+      || REGEX(STR(?gProp), "gender|genero|g[eè]nere|sexo", "i")
+    )
+  }
+  BIND(COALESCE(LCASE(STR(?gVal)), "unknown") AS ?genderGroup)
+
+  OPTIONAL {
+    ?p ?oProp ?oVal .
+    FILTER(
+      ?oProp = <http://www.wikidata.org/prop/direct/P106>
+      || REGEX(STR(?oProp), "occupation|profession|profesion|oficio", "i")
+    )
+    FILTER(STRLEN(STR(?oVal)) > 0)
+    BIND(?p AS ?pOcc)
+  }
+}
+GROUP BY ?genderGroup
+ORDER BY DESC(?persons) ?genderGroup
+```
+
+##### SPARQL results (JSON) #op
+```json
+{
+  "status": "error",
+  "errorType": "ExecutionBlocked",
+  "error": "Could not execute in this run",
+  "details": "Browser query editor returned stale element references repeatedly during automation."
+}
+```
+
+#### Server (SPARQL via API)
+```bash
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "SELECT ?genderGroup (COUNT(DISTINCT ?p) AS ?persons) (COUNT(DISTINCT ?pOcc) AS ?withOccupation) WHERE { ?p <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?personType . FILTER(REGEX(STR(?personType), \"Q5|Person\", \"i\")) OPTIONAL { ?p ?gProp ?gVal . FILTER(?gProp = <http://www.wikidata.org/prop/direct/P21> || REGEX(STR(?gProp), \"gender|genero|g[eè]nere|sexo\", \"i\")) } BIND(COALESCE(LCASE(STR(?gVal)), \"unknown\") AS ?genderGroup) OPTIONAL { ?p ?oProp ?oVal . FILTER(?oProp = <http://www.wikidata.org/prop/direct/P106> || REGEX(STR(?oProp), \"occupation|profession|profesion|oficio\", \"i\")) FILTER(STRLEN(STR(?oVal)) > 0) BIND(?p AS ?pOcc) } } GROUP BY ?genderGroup ORDER BY DESC(?persons) ?genderGroup",
+    "format": "json"
+  }'
+```
+
+##### Results:
+```json
+{
+  "status": "error",
+  "errorType": "MissingCredentials",
+  "error": "UBXAT_USER and/or UBXAT_PASSWORD not set in terminal environment",
+  "details": "Server API execution skipped."
+}
+```
+
+### Test G4 - Social/economic-status vocabulary audit
+
+Objective: inventory properties/values related to social or economic status to check whether this dimension is represented in the integrated graph.
+
+#### Cypher
+```cypher
+MATCH (n)
+UNWIND keys(n) AS k
+WITH n, k, toString(n[k]) AS v
+WHERE toLower(k) CONTAINS "social"
+   OR toLower(k) CONTAINS "economic"
+   OR toLower(k) CONTAINS "socio"
+   OR toLower(k) CONTAINS "clase"
+   OR toLower(k) CONTAINS "estatus"
+   OR toLower(k) CONTAINS "ocup"
+   OR toLower(k) CONTAINS "profes"
+RETURN k AS propertyName, count(DISTINCT n) AS nodes, count(*) AS values
+ORDER BY values DESC, propertyName;
+```
+
+##### Cypher results (JSON) #op
+```json
+{
+  "status": "error",
+  "errorType": "ExecutionBlocked",
+  "error": "Could not execute in this run",
+  "details": "Browser query editor returned stale element references repeatedly during automation."
+}
+```
+
+#### Cypher (Neo4j 5)
+```cypher
+MATCH (n)
+UNWIND keys(n) AS k
+WITH n, k
+WHERE toLower(k) CONTAINS "social"
+   OR toLower(k) CONTAINS "economic"
+   OR toLower(k) CONTAINS "socio"
+   OR toLower(k) CONTAINS "clase"
+   OR toLower(k) CONTAINS "estatus"
+   OR toLower(k) CONTAINS "ocup"
+   OR toLower(k) CONTAINS "profes"
+RETURN k AS propertyName, count(DISTINCT n) AS nodes, count(*) AS values
+ORDER BY values DESC, propertyName;
+```
+
+##### Cypher (Neo4j 5) results (JSON) #op
+```json
+{
+  "status": "error",
+  "errorType": "ExecutionBlocked",
+  "error": "Could not execute in this run",
+  "details": "Browser query editor returned stale element references repeatedly during automation."
+}
+```
+
+#### SPARQL
+```sparql
+SELECT ?propertyName (COUNT(DISTINCT ?n) AS ?nodes) (COUNT(*) AS ?values)
+WHERE {
+  ?n ?p ?v .
+  BIND(LCASE(STR(?p)) AS ?propertyName)
+  FILTER(
+    CONTAINS(?propertyName, "social")
+    || CONTAINS(?propertyName, "economic")
+    || CONTAINS(?propertyName, "socio")
+    || CONTAINS(?propertyName, "clase")
+    || CONTAINS(?propertyName, "estatus")
+    || CONTAINS(?propertyName, "ocup")
+    || CONTAINS(?propertyName, "profes")
+    || CONTAINS(?propertyName, "prop/direct/p106")
+  )
+}
+GROUP BY ?propertyName
+ORDER BY DESC(?values) ?propertyName
+```
+
+##### SPARQL results (JSON) #op
+```json
+{
+  "status": "error",
+  "errorType": "ExecutionBlocked",
+  "error": "Could not execute in this run",
+  "details": "Browser query editor returned stale element references repeatedly during automation."
+}
+```
+
+#### Server (SPARQL via API)
+```bash
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "SELECT ?propertyName (COUNT(DISTINCT ?n) AS ?nodes) (COUNT(*) AS ?values) WHERE { ?n ?p ?v . BIND(LCASE(STR(?p)) AS ?propertyName) FILTER(CONTAINS(?propertyName, \"social\") || CONTAINS(?propertyName, \"economic\") || CONTAINS(?propertyName, \"socio\") || CONTAINS(?propertyName, \"clase\") || CONTAINS(?propertyName, \"estatus\") || CONTAINS(?propertyName, \"ocup\") || CONTAINS(?propertyName, \"profes\") || CONTAINS(?propertyName, \"prop/direct/p106\")) } GROUP BY ?propertyName ORDER BY DESC(?values) ?propertyName",
+    "format": "json"
+  }'
+```
+
+##### Results:
+```json
+{
+  "status": "error",
+  "errorType": "MissingCredentials",
+  "error": "UBXAT_USER and/or UBXAT_PASSWORD not set in terminal environment",
+  "details": "Server API execution skipped."
+}
+```
+
+
 # 3. Types of SPARQL search:
 
 > Note: the SPARQL examples below assume an RDF view of the graph. `rdf:type` is standard; `ex:` is a placeholder namespace and should be replaced with the real ontology/predicate IRIs before running.
@@ -15700,6 +16158,47 @@ Interpretation: in this latest execution, only **Query 2 (Cypher)** returned dat
 - **Practical conclusion for this run**:
   - Only a **basic label-level structural check** is currently reproducible (via Cypher in `Query 2`).
   - All deeper metadata/schema validation objectives should be treated as **inconclusive due to backend/route instability**, not as evidence of missing data in the graph itself.
+
+## Final ingestion validation block (3 databases + mapping) - inconsistency analysis by objective
+
+The `A1/A2/A3/B1/C1/X1/X2` validation block is currently affected by a systemic execution inconsistency: the same objective fails differently across execution paths (Platform often `500`, Server API mostly `404`, and Cypher alternating `500`/`404`). Because no successful payload is returned in this block, the expected data-quality checks are not empirically verifiable in this run.
+
+- **A1 (three-source footprint present)**:
+  - **Expected evidence**: non-zero counts for `cultura_y_censura`, `fosas_comunes`, and `sidbrint`.
+  - **Observed inconsistency**: Cypher/Platform fail with `500`, Server fails with `404`; no sourceTag distribution available.
+  - **Data inconsistency conclusion**: **coverage inconsistency cannot be measured** (missing evidence, not confirmed absence).
+
+- **A2 (mass-grave required mapped fields completeness)**:
+  - **Expected evidence**: coherent counts for `totalMassGraves`, `withName`, `withCountry`, `withAdminLocation`.
+  - **Observed inconsistency**: Platform `500`, Server `404`, Cypher `404`.
+  - **Data inconsistency conclusion**: **field-completeness gaps cannot be quantified** (no returned aggregates).
+
+- **A3 (mass-grave coordinate integrity)**:
+  - **Expected evidence**: list/count of malformed `P625` literals.
+  - **Observed inconsistency**: Platform `500`, Server `404`, Cypher `404`.
+  - **Data inconsistency conclusion**: **coordinate-quality anomalies cannot be confirmed nor ruled out**.
+
+- **B1 (SIDBRINT person integrity)**:
+  - **Expected evidence**: counts for persons with label and with birth/death marker.
+  - **Observed inconsistency**: Platform `500`, Server `404`, Cypher `404`.
+  - **Data inconsistency conclusion**: **identity/temporal mapping completeness remains unverified**.
+
+- **C1 (Cultura y censura document integrity)**:
+  - **Expected evidence**: `totalDocuments` vs `withTitle`.
+  - **Observed inconsistency**: Platform `500`, Server `404`, Cypher `404`.
+  - **Data inconsistency conclusion**: **document metadata completeness is inconclusive**.
+
+- **X1 (cross-source duplicate candidates by normalized title)**:
+  - **Expected evidence**: repeated normalized labels with `nodes > 1`.
+  - **Observed inconsistency**: Platform `500`, Server `404`, Cypher `404`.
+  - **Data inconsistency conclusion**: **duplicate-risk cannot be assessed** in this run.
+
+- **X2 (type conflict per entity / merge-error signal)**:
+  - **Expected evidence**: entities with unusually high type multiplicity.
+  - **Observed inconsistency**: Platform `500`, Server `404`, Cypher `404`.
+  - **Data inconsistency conclusion**: **merge/type-conflict anomalies cannot be tested**.
+
+Net interpretation for this block: the dominant inconsistency is **operational non-reproducibility across query paths**, which prevents objective-level data validation. Therefore, current `Final ingestion validation` outcomes should be marked **inconclusive due to execution instability**, not interpreted as confirmed mapping/data failures.
 
 ## Searches compared
 
