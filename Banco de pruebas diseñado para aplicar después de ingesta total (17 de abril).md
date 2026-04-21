@@ -13707,6 +13707,7 @@ ORDER BY totalRelationships DESC, relType;
 
 #### Cypher results (JSON) #op
 ```json
+json\n{"results":[{"relType":"LOCATED_IN","totalRelationships":1684,"withoutProperties":1682,"withProperties":2},{"relType":"COUNTRY_OF_CITIZENSHIP","totalRelationships":883,"withoutProperties":883,"withProperties":0},{"relType":"DOCUMENTED_IN","totalRelationships":701,"withoutProperties":701,"withProperties":0},{"relType":"MEMBER_OF","totalRelationships":491,"withoutProperties":491,"withProperties":0},{"relType":"PARTICIPATED_IN","totalRelationships":291,"withoutProperties":291,"withProperties":0},{"relType":"TREATED_AT","totalRelationships":128,"withoutProperties":126,"withProperties":2},{"relType":"RELATED_TO","totalRelationships":89,"withoutProperties":89,"withProperties":0},{"relType":"CONTAINS","totalRelationships":40,"withoutProperties":40,"withProperties":0},{"relType":"HAS_TYPOLOGY","totalRelationships":39,"withoutProperties":39,"withProperties":0},{"relType":"AUTHORED_BY","totalRelationships":37,"withoutProperties":37,"withProperties":0},{"relType":"CAUSED_BY","totalRelationships":23,"withoutProperties":23,"withProperties":0},{"relType":"PLACE_OF_BIRTH","totalRelationships":23,"withoutProperties":23,"withProperties":0},{"relType":"BURIED_IN","totalRelationships":14,"withoutProperties":14,"withProperties":0},{"relType":"SERVED_IN","totalRelationships":12,"withoutProperties":12,"withProperties":0},{"relType":"HAS_IDEOLOGY","totalRelationships":10,"withoutProperties":10,"withProperties":0},{"relType":"TRAVELLED_TO","totalRelationships":5,"withoutProperties":4,"withProperties":1},{"relType":"HAS_OCCUPATION","totalRelationships":4,"withoutProperties":4,"withProperties":0},{"relType":"KNOWS","totalRelationships":3,"withoutProperties":3,"withProperties":0},{"relType":"DETAINED_AT","totalRelationships":2,"withoutProperties":0,"withProperties":2},{"relType":"SIBLING_OF","totalRelationships":2,"withoutProperties":2,"withProperties":0},{"relType":"partner","totalRelationships":1,"withoutProperties":1,"withProperties":0}],"columns":["relType","totalRelationships","withoutProperties","withProperties"]}\n```
 ```
 
 #### SPARQL
@@ -13722,8 +13723,7 @@ ORDER BY DESC(?totalRelationships) ?relType
 ```
 
 #### SPARQL results (JSON) #op
-```json
-```
+```json\nSTATUS: 500\nInternal Server Error\n```
 
 #### Server
 ```bash
@@ -13902,8 +13902,7 @@ ORDER BY ?label DESC(?nodesWithProperty) ?propertyName
 ```
 
 #### SPARQL results (JSON) #op
-```json
-```
+```json\nSTATUS: 500\nInternal Server Error\n```
 
 #### Server
 ```bash
@@ -13962,8 +13961,7 @@ ORDER BY DESC(?edges)
 ```
 
 ##### SPARQL results (JSON) #op 
-```json
-```
+```json\nSTATUS: 500\nInternal Server Error\n```
 
 #### Server
 ```bash
@@ -13997,25 +13995,41 @@ Objective: confirm target database context and avoid running diagnostics against
 SHOW DATABASES;
 ```
 
-#### Cypher results (JSON)
+#### Cypher results (JSON) #op
 ```json
 ```
 
-#### SPARQL
+#### SPARQL #op
 ```sparql
-# No direct SPARQL equivalent for database catalog commands (SHOW DATABASES).
+# Approximation for database-context validation in RDF endpoint:
+# return a compact graph fingerprint to verify target environment.
+SELECT
+  (COUNT(DISTINCT ?s) AS ?distinctSubjects)
+  (COUNT(DISTINCT ?p) AS ?distinctPredicates)
+  (COUNT(*) AS ?totalTriples)
+WHERE {
+  ?s ?p ?o .
+}
 ```
 
-#### SPARQL results (JSON)
+#### SPARQL results (JSON) #op
 ```json
 ```
 
-#### Server
+#### Server #op
 ```bash
-# N/A for SHOW DATABASES in SPARQL API.
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "SELECT (COUNT(DISTINCT ?s) AS ?distinctSubjects) (COUNT(DISTINCT ?p) AS ?distinctPredicates) (COUNT(*) AS ?totalTriples) WHERE { ?s ?p ?o . }",
+    "format": "json"
+  }'
 ```
 
-#### Results:
+#### Results #op
 ```json
 ```
 
@@ -14030,7 +14044,7 @@ RETURN label
 ORDER BY label;
 ```
 
-#### Cypher results (JSON)
+#### Cypher results (JSON) #op
 ```json
 ```
 
@@ -14045,7 +14059,7 @@ WHERE {
 ORDER BY ?label
 ```
 
-#### SPARQL results (JSON)
+##### SPARQL results (JSON) #op
 ```json
 ```
 
@@ -14057,7 +14071,7 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
   }'
 ```
 
-#### Results:
+##### Results:
 ```json
 ```
 
@@ -14076,7 +14090,7 @@ RETURN nodeLabels,
 ORDER BY nodeLabels, propertyName;
 ```
 
-#### Cypher results (JSON)
+##### Cypher results (JSON)
 ```json
 ```
 
@@ -14094,7 +14108,7 @@ GROUP BY ?label ?propertyName
 ORDER BY ?label DESC(?nodesWithProperty) ?propertyName
 ```
 
-#### SPARQL results (JSON)
+##### SPARQL results (JSON)
 ```json
 ```
 
@@ -14106,7 +14120,7 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
   }'
 ```
 
-#### Results:
+##### Results:
 ```json
 ```
 
@@ -14121,7 +14135,7 @@ RETURN propertyKey
 ORDER BY propertyKey;
 ```
 
-#### Cypher results (JSON)
+##### Cypher results (JSON)
 ```json
 ```
 
@@ -14135,7 +14149,7 @@ WHERE {
 ORDER BY ?propertyName
 ```
 
-#### SPARQL results (JSON)
+##### SPARQL results (JSON)
 ```json
 ```
 
@@ -14147,7 +14161,7 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
   }'
 ```
 
-#### Results:
+##### Results:
 ```json
 ```
 
@@ -14166,7 +14180,7 @@ RETURN relType,
 ORDER BY relType, propertyName;
 ```
 
-#### Cypher results (JSON)
+##### Cypher results (JSON)
 ```json
 ```
 
@@ -14183,7 +14197,7 @@ GROUP BY ?relType ?propertyName
 ORDER BY ?relType DESC(?relationshipsWithProperty) ?propertyName
 ```
 
-#### SPARQL results (JSON)
+##### SPARQL results (JSON)
 ```json
 ```
 
@@ -14195,7 +14209,7 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
   }'
 ```
 
-#### Results:
+##### Results:
 ```json
 ```
 
@@ -14215,7 +14229,7 @@ RETURN label,
 ORDER BY label, nodesWithProperty DESC, propertyName;
 ```
 
-#### Cypher results (JSON)
+##### Cypher results (JSON)
 ```json
 ```
 
@@ -14233,7 +14247,7 @@ GROUP BY ?label ?propertyName
 ORDER BY ?label DESC(?nodesWithProperty) ?propertyName
 ```
 
-#### SPARQL results (JSON)
+##### SPARQL results (JSON)
 ```json
 ```
 
@@ -14245,7 +14259,7 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
   }'
 ```
 
-#### Results:
+##### Results:
 ```json
 ```
 
@@ -14264,9 +14278,8 @@ RETURN type(r) AS relType,
 ORDER BY relType, relationshipsWithProperty DESC, propertyName;
 ```
 
-#### Cypher results (JSON) #op 
-```json
-```
+##### Cypher results (JSON) #op 
+```json\nSTATUS: 404\n404 page not found\n```
 
 #### SPARQL
 ```sparql
@@ -14281,9 +14294,8 @@ GROUP BY ?relType ?propertyName
 ORDER BY ?relType DESC(?relationshipsWithProperty) ?propertyName
 ```
 
-#### SPARQL results (JSON) #op 
-```json
-```
+##### SPARQL results (JSON) #op 
+```json\nSTATUS: 404\n404 page not found\n```
 
 #### Server
 ```bash
@@ -14293,9 +14305,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
   }'
 ```
 
-#### Results: #op
-```json
-```
+##### Results: #op
+```json\nSTATUS: 404\n404 page not found\n```
 
 ### Query 8 - Node labels without any properties
 
@@ -14314,9 +14325,8 @@ RETURN label,
 ORDER BY nodesWithoutProperties DESC, label;
 ```
 
-#### Cypher results (JSON) #op
-```json
-```
+##### Cypher results (JSON) #op
+```json\nSTATUS: 404\n404 page not found\n```
 
 #### SPARQL
 ```sparql
@@ -14331,9 +14341,8 @@ GROUP BY ?label
 ORDER BY DESC(?totalNodes) ?label
 ```
 
-#### SPARQL results (JSON) #op
-```json
-```
+##### SPARQL results (JSON) #op
+```json\nSTATUS: 404\n404 page not found\n```
 
 #### Server
 ```bash
@@ -14343,9 +14352,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
   }'
 ```
 
-#### Results: #op
-```json
-```
+##### Results: #op
+```json\nSTATUS: 404\n404 page not found\n```
 
 ### Query 9 - Relationship types without any properties
 
@@ -14362,9 +14370,8 @@ RETURN relType,
 ORDER BY relationshipsWithoutProperties DESC, relType;
 ```
 
-#### Cypher results (JSON) #op
-```json
-```
+##### Cypher results (JSON) #op
+```json\nSTATUS: 404\n404 page not found\n```
 
 #### SPARQL
 ```sparql
@@ -14377,9 +14384,8 @@ GROUP BY ?relType
 ORDER BY DESC(?edges)
 ```
 
-#### SPARQL results (JSON) #op
-```json
-```
+##### SPARQL results (JSON) #op
+```json\nSTATUS: 404\n404 page not found\n```
 
 #### Server
 ```bash
@@ -14389,9 +14395,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
   }'
 ```
 
-#### Results: #op
-```json
-```
+##### Results: #op
+```json\nSTATUS: 404\n404 page not found\n```
 
 ### Query 10 - Observed value types for node properties
 
@@ -14411,9 +14416,8 @@ RETURN label,
 ORDER BY label, propertyName, occurrences DESC, observedType;
 ```
 
-#### Cypher results (JSON) #op
-```json
-```
+##### Cypher results (JSON) #op
+```json\nSTATUS: 404\n404 page not found\n```
 
 #### SPARQL
 ```sparql
@@ -14429,9 +14433,8 @@ GROUP BY ?label ?propertyName (DATATYPE(?value))
 ORDER BY ?label ?propertyName DESC(?occurrences) ?observedType
 ```
 
-#### SPARQL results (JSON) #op
-```json
-```
+##### SPARQL results (JSON) #op
+```json\nSTATUS: 404\n404 page not found\n```
 
 #### Server
 ```bash
@@ -14441,9 +14444,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
   }'
 ```
 
-#### Results: #op 
-```json
-```
+##### Results: #op 
+```json\nSTATUS: 404\n404 page not found\n```
 
 ### Query 11 - Observed value types for relationship properties
 
@@ -14461,9 +14463,8 @@ RETURN relType,
 ORDER BY relType, propertyName, occurrences DESC, observedType;
 ```
 
-#### Cypher results (JSON) #op
-```json
-```
+##### Cypher results (JSON) #op
+```json\nSTATUS: 404\n404 page not found\n```
 
 #### SPARQL
 ```sparql
@@ -14478,9 +14479,8 @@ GROUP BY ?relType ?propertyName (DATATYPE(?value))
 ORDER BY ?relType ?propertyName DESC(?occurrences) ?observedType
 ```
 
-#### SPARQL results (JSON) #op
-```json
-```
+##### SPARQL results (JSON) #op
+```json\nSTATUS: 404\n404 page not found\n```
 
 #### Server
 ```bash
@@ -14490,9 +14490,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
   }'
 ```
 
-#### Results: #op
-```json
-```
+##### Results: #op
+```json\nSTATUS: 404\n404 page not found\n```
 
 # 2. Final ingestion validation block (3 databases + mapping)
 
@@ -14543,10 +14542,8 @@ GROUP BY ?sourceTag
 ORDER BY DESC(?count)
 ```
 
-##### Results #op
-```json
-
-```
+##### Results (JSON)
+```json\nSTATUS: 500\nInternal Server Error\n```
 
 #### Server (API)
 ```bash
@@ -14584,7 +14581,8 @@ RETURN
 ```
 
 ##### Cypher results (JSON) #op
-```json
+```Json
+json\nSTATUS: 404\n404 page not found\n
 ```
 
 #### Platform (SPARQL)
@@ -14649,8 +14647,7 @@ LIMIT 100;
 ```
 
 ##### Cypher results (JSON) #op
-```json
-```
+```json\nSTATUS: 404\n404 page not found\n```
 
 #### Platform (SPARQL)
 ```sparql
@@ -14706,8 +14703,7 @@ RETURN
 ```
 
 ##### Cypher results (JSON) #op 
-```json
-```
+```json\nSTATUS: 404\n404 page not found\n```
 
 #### Platform (SPARQL)
 ```sparql
@@ -14767,8 +14763,7 @@ RETURN
 ```
 
 ##### Cypher results (JSON) #op 
-```json
-```
+```json\nSTATUS: 404\n404 page not found\n```
 
 #### Platform (SPARQL)
 ```sparql
@@ -14825,8 +14820,7 @@ LIMIT 100;
 ```
 
 ##### Cypher results (JSON) #op 
-```json
-```
+```json\nSTATUS: 404\n404 page not found\n```
 
 #### Platform (SPARQL)
 ```sparql
@@ -14882,8 +14876,7 @@ LIMIT 100;
 ```
 
 ##### Cypher results (JSON) #op
-```json
-```
+```json\nSTATUS: 404\n404 page not found\n```
 
 #### Platform (SPARQL)
 ```sparql
@@ -14940,10 +14933,7 @@ MATCH (subject)-[r]->(object)
 RETURN id(subject) AS subject, type(r) AS predicate, id(object) AS object;
 ```
 
-###### Results #op 
-```json
-
-```
+```json\n{"results":[{"subject":2,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":2,"predicate":"DOCUMENTED_IN","object":5},{"subject":3,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":3,"predicate":"DOCUMENTED_IN","object":6},{"subject":4,"predicate":"PARTICIPATED_IN","object":1119},{"subject":4,"predicate":"MEMBER_OF","object":1135},{"subject":4,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":4,"predicate":"DOCUMENTED_IN","object":7},{"subject":8,"predicate":"MEMBER_OF","object":1166},{"subject":8,"predicate":"DOCUMENTED_IN","object":9},{"subject":10,"predicate":"MEMBER_OF","object":11},{"subject":10,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":10,"predicate":"DOCUMENTED_IN","object":12},{"subject":13,"predicate":"MEMBER_OF","object":14},{"subject":13,"predicate":"DOCUMENTED_IN","object":15},{"subject":16,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1664},{"subject":16,"predicate":"DOCUMENTED_IN","object":17},{"subject":18,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1115},{"subject":18,"predicate":"DOCUMENTED_IN","object":19},{"subject":20,"predicate":"DOCUMENTED_IN","object":21},{"subject":22,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1206},{"subject":22,"predicate":"DOCUMENTED_IN","object":25},{"subject":23,"predicate":"PARTICIPATED_IN","object":1119},{"subject":23,"predicate":"MEMBER_OF","object":1292},{"subject":23,"predicate":"TREATED_AT","object":1378},{"subject":23,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1123},{"subject":23,"predicate":"DOCUMENTED_IN","object":26},{"subject":24,"predicate":"PARTICIPATED_IN","object":1119},{"subject":24,"predicate":"MEMBER_OF","object":1292},{"subject":24,"predicate":"DOCUMENTED_IN","object":27},{"subject":28,"predicate":"PARTICIPATED_IN","object":1132},{"subject":28,"predicate":"COUNTRY_OF_CITIZENSHIP","object":321},{"subject":28,"predicate":"DOCUMENTED_IN","object":29},{"subject":30,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":30,"predicate":"DOCUMENTED_IN","object":31},{"subject":30,"predicate":"AUTHORED_BY","object":1882},{"subject":32,"predicate":"COUNTRY_OF_CITIZENSHIP","object":321},{"subject":32,"predicate":"DOCUMENTED_IN","object":33},{"subject":32,"predicate":"AUTHORED_BY","object":1882},{"subject":34,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1242},{"subject":34,"predicate":"DOCUMENTED_IN","object":37},{"subject":35,"predicate":"MEMBER_OF","object":1543},{"subject":35,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1458},{"subject":35,"predicate":"DOCUMENTED_IN","object":38},{"subject":36,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1458},{"subject":36,"predicate":"DOCUMENTED_IN","object":39},{"subject":40,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":41,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1242},{"subject":42,"predicate":"PARTICIPATED_IN","object":1564},{"subject":43,"predicate":"MEMBER_OF","object":1595},{"subject":43,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1385},{"subject":44,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":45,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1216},{"subject":46,"predicate":"MEMBER_OF","object":48},{"subject":46,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1115},{"subject":46,"predicate":"DOCUMENTED_IN","object":47},{"subject":49,"predicate":"DOCUMENTED_IN","object":50},{"subject":51,"predicate":"MEMBER_OF","object":1166},{"subject":51,"predicate":"DOCUMENTED_IN","object":52},{"subject":53,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1148},{"subject":53,"predicate":"DOCUMENTED_IN","object":56},{"subject":54,"predicate":"PARTICIPATED_IN","object":1119},{"subject":54,"predicate":"MEMBER_OF","object":1135},{"subject":54,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":54,"predicate":"DOCUMENTED_IN","object":57},{"subject":54,"predicate":"AUTHORED_BY","object":1713},{"subject":55,"predicate":"PARTICIPATED_IN","object":1119},{"subject":55,"predicate":"MEMBER_OF","object":1135},{"subject":55,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":55,"predicate":"DOCUMENTED_IN","object":58},{"subject":55,"predicate":"AUTHORED_BY","object":1713},{"subject":59,"predicate":"MEMBER_OF","object":1543},{"subject":59,"predicate":"DOCUMENTED_IN","object":60},{"subject":61,"predicate":"MEMBER_OF","object":1120},{"subject":61,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1115},{"subject":61,"predicate":"DOCUMENTED_IN","object":62},{"subject":63,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1156},{"subject":63,"predicate":"DOCUMENTED_IN","object":64},{"subject":65,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1216},{"subject":65,"predicate":"DOCUMENTED_IN","object":68},{"subject":66,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1216},{"subject":66,"predicate":"DOCUMENTED_IN","object":69},{"subject":67,"predicate":"DOCUMENTED_IN","object":70},{"subject":72,"predicate":"MEMBER_OF","object":1166},{"subject":72,"predicate":"DOCUMENTED_IN","object":73},{"subject":74,"predicate":"MEMBER_OF","ob\n... [truncated]\n```
 ##### SPARQL
 ```sparql
 SELECT ?subject ?predicate ?object
@@ -14952,10 +14942,7 @@ WHERE {
 }
 ```
 
-###### Results #op 
-```json
-
-```
+```json\n{"results":[{"subject":"Bernard","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Bernard","predicate":"DOCUMENTED_IN","object":"43378"},{"subject":"Bernard, Aimé Marcel","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Bernard, Aimé Marcel","predicate":"DOCUMENTED_IN","object":"43628"},{"subject":"Bernard, Albert","predicate":"PARTICIPATED_IN","object":"Batalla de Brunete"},{"subject":"Bernard, Albert","predicate":"MEMBER_OF","object":"Brigada XIV | La Marseillaise | Dumont"},{"subject":"Bernard, Albert","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Bernard, Albert","predicate":"DOCUMENTED_IN","object":"72161"},{"subject":"Berncman, Abram","predicate":"MEMBER_OF","object":"Brigada XIII | Dombrowski | Dąbrowski"},{"subject":"Berncman, Abram","predicate":"DOCUMENTED_IN","object":"54923"},{"subject":"Berne, César","predicate":"MEMBER_OF","object":"Brigada de Tancs"},{"subject":"Berne, César","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Berne, César","predicate":"DOCUMENTED_IN","object":"89333"},{"subject":"Bernegan, Willi","predicate":"MEMBER_OF","object":"35 Divisió"},{"subject":"Bernegan, Willi","predicate":"DOCUMENTED_IN","object":"89334"},{"subject":"Bernstein, Izuck","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Romania"},{"subject":"Bernstein, Izuck","predicate":"DOCUMENTED_IN","object":"85487"},{"subject":"Bernstein, Paul","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Estats Units d'Amèrica"},{"subject":"Bernstein, Paul","predicate":"DOCUMENTED_IN","object":"88242"},{"subject":"Bernstein, Willard","predicate":"DOCUMENTED_IN","object":"89339"},{"subject":"Berro, Saturnino","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Cuba"},{"subject":"Berro, Saturnino","predicate":"DOCUMENTED_IN","object":"16358"},{"subject":"Berrocal Antúnez, Domingo","predicate":"PARTICIPATED_IN","object":"Batalla de Brunete"},{"subject":"Berrocal Antúnez, Domingo","predicate":"MEMBER_OF","object":"Brigada XI | Thaelmann | Hans Beimler"},{"subject":"Berrocal Antúnez, Domingo","predicate":"TREATED_AT","object":"Hospitals de Tarancón"},{"subject":"Berrocal Antúnez, Domingo","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Espanya"},{"subject":"Berrocal Antúnez, Domingo","predicate":"DOCUMENTED_IN","object":"72182"},{"subject":"Berrocal, Álvaro","predicate":"PARTICIPATED_IN","object":"Batalla de Brunete"},{"subject":"Berrocal, Álvaro","predicate":"MEMBER_OF","object":"Brigada XI | Thaelmann | Hans Beimler"},{"subject":"Berrocal, Álvaro","predicate":"DOCUMENTED_IN","object":"72180"},{"subject":"Berti, Mario","predicate":"PARTICIPATED_IN","object":"Front d'Aragó"},{"subject":"Berti, Mario","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Desconegut"},{"subject":"Berti, Mario","predicate":"DOCUMENTED_IN","object":"88234"},{"subject":"Bertin, Georges","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Bertin, Georges","predicate":"DOCUMENTED_IN","object":"89343"},{"subject":"Bertin, Georges","predicate":"AUTHORED_BY","object":"Josep Robert Reig Miro"},{"subject":"Bertin, Samilier","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Desconegut"},{"subject":"Bertin, Samilier","predicate":"DOCUMENTED_IN","object":"89344"},{"subject":"Bertin, Samilier","predicate":"AUTHORED_BY","object":"Josep Robert Reig Miro"},{"subject":"Berzins, Jan Antonovich","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Unió Soviètica"},{"subject":"Berzins, Jan Antonovich","predicate":"DOCUMENTED_IN","object":"1829"},{"subject":"Bescos De Siboni, María Del Pilar","predicate":"MEMBER_OF","object":"Cos de Sanitat"},{"subject":"Bescos De Siboni, María Del Pilar","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Argentina"},{"subject":"Bescos De Siboni, María Del Pilar","predicate":"DOCUMENTED_IN","object":"88007"},{"subject":"Besmertnaia, Sonia","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Argentina"},{"subject":"Besmertnaia, Sonia","predicate":"DOCUMENTED_IN","object":"24047"},{"subject":"Bessières","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Bessmertnaia, Sofía","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Unió Soviètica"},{"subject":"Besson, Pierre","predicate":"PARTICIPATED_IN","object":"Front del Nord"},{"subject":"Beugnier, Alfred","predicate":"MEMBER_OF","object":"Parti Communiste de Belgique (PCB) (Partit Comunista de Bèlgica)"},{"subject":"Beugnier, Alfred","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Bèlgica"},{"subject":"Beure, Joseph","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Beurhler, Reinhold","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Alemanya"},{"subject":"Bhoier, Arwis","predicate":"MEMBER_OF","object":"Brigada XV"},{"subject":"Bhoier, Arwis","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Estats Units d'Amèrica"},{"subject":"Bhoier, Arwis","predicate":"DOCUMENTED_IN","object":"91309"},{"subject":"Bhorteher, Hermann","predicate":"DOCUMENTED_IN","object":"91310"},{"subject":"Bialowas, Hersh","predicate":"MEMB\n... [truncated]\n```
 
 ##### Server (SPARQL via API)
 ```bash
@@ -14990,10 +14977,7 @@ RETURN id(n) AS subject, labels(n) AS labels, coalesce(n.name, n.title, n.text) 
 LIMIT 50;
 ```
 
-###### Results #op
-```json
-
-```
+```json\n{"results":[],"columns":[]}\n```
 
 ##### SPARQL
 ```sparql
@@ -15048,10 +15032,7 @@ SKIP 0
 LIMIT 25;
 ```
 
-###### Results #op 
-```json
-
-```
+```json\n{"results":[{"subject":2,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":2,"predicate":"DOCUMENTED_IN","object":5},{"subject":3,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":3,"predicate":"DOCUMENTED_IN","object":6},{"subject":4,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":4,"predicate":"DOCUMENTED_IN","object":7},{"subject":4,"predicate":"MEMBER_OF","object":1135},{"subject":4,"predicate":"PARTICIPATED_IN","object":1119},{"subject":8,"predicate":"DOCUMENTED_IN","object":9},{"subject":8,"predicate":"MEMBER_OF","object":1166},{"subject":10,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":10,"predicate":"DOCUMENTED_IN","object":12},{"subject":10,"predicate":"MEMBER_OF","object":11},{"subject":13,"predicate":"DOCUMENTED_IN","object":15},{"subject":13,"predicate":"MEMBER_OF","object":14},{"subject":16,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1664},{"subject":16,"predicate":"DOCUMENTED_IN","object":17},{"subject":18,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1115},{"subject":18,"predicate":"DOCUMENTED_IN","object":19},{"subject":20,"predicate":"DOCUMENTED_IN","object":21},{"subject":22,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1206},{"subject":22,"predicate":"DOCUMENTED_IN","object":25},{"subject":23,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1123},{"subject":23,"predicate":"DOCUMENTED_IN","object":26},{"subject":23,"predicate":"MEMBER_OF","object":1292}],"columns":["subject","predicate","object"]}\n```
 
 ##### SPARQL
 ```sparql
@@ -15064,10 +15045,7 @@ LIMIT 25
 OFFSET 0
 ```
 
-###### Results #op 
-```json
-
-```
+```json\nSTATUS: 500\nInternal Server Error\n```
 
 ##### Server (SPARQL via API)
 ```bash
@@ -15213,8 +15191,7 @@ RETURN count(n) AS count;
 ```
 
 ###### Results #op
-```json
-```
+```json\nSTATUS: 404\n404 page not found\n```
 ##### SPARQL
 ```sparql
 SELECT (COUNT(DISTINCT ?n) AS ?count)
@@ -15318,8 +15295,7 @@ RETURN nodes, relationships;
 ```
 
 ###### Results #op 
-```json
-```
+```json\nSTATUS: 404\n404 page not found\n```
 
 ##### SPARQL
 ```sparql
@@ -15381,8 +15357,7 @@ WHERE {
 }
 ```
 ###### Results #op
-```json
-```
+```json\nSTATUS: 404\n404 page not found\n```
 
 ##### Server (SPARQL via API)
 ```bash
@@ -15416,8 +15391,7 @@ LIMIT 50;
 ```
 
 ###### Results #op
-```json
-```
+```json\nSTATUS: 404\n404 page not found\n```
 
 ##### SPARQL
 ```sparql
@@ -15474,8 +15448,7 @@ LIMIT 25;
 ```
 
 ###### Results #op
-```json
-```
+```json\nSTATUS: 404\n404 page not found\n```
 
 ##### SPARQL
 ```sparql
@@ -15489,8 +15462,7 @@ OFFSET 0
 ```
 
 ###### Results #op
-```json
-```
+```json\nSTATUS: 404\n404 page not found\n```
 
 ##### Server (SPARQL via API)
 ```bash
@@ -15526,8 +15498,7 @@ LIMIT 20;
 ```
 
 ###### Results #op
-```json
-```
+```json\nSTATUS: 404\n404 page not found\n```
 
 ##### SPARQL
 ```sparql
@@ -15543,8 +15514,7 @@ LIMIT 20
 ```
 
 ###### Results #op
-```json
-```
+```json\nSTATUS: 404\n404 page not found\n```
 
 ##### Server (SPARQL via API)
 ```bash
@@ -15605,8 +15575,7 @@ WHERE {
 }
 ```
 ###### Results #op
-```json
-```
+```json\nSTATUS: 404\n404 page not found\n```
 
 ##### Server (SPARQL via API)
 ```bash
