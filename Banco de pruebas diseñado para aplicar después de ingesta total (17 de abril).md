@@ -13705,7 +13705,7 @@ ORDER BY totalRelationships DESC, relType;
 
 ```
 
-#### Cypher results (JSON)
+#### Cypher results (JSON) #op
 ```json
 ```
 
@@ -13721,7 +13721,7 @@ GROUP BY ?relType
 ORDER BY DESC(?totalRelationships) ?relType
 ```
 
-#### SPARQL results (JSON)
+#### SPARQL results (JSON) #op
 ```json
 ```
 
@@ -13901,7 +13901,7 @@ GROUP BY ?label ?propertyName
 ORDER BY ?label DESC(?nodesWithProperty) ?propertyName
 ```
 
-#### SPARQL results (JSON)
+#### SPARQL results (JSON) #op
 ```json
 ```
 
@@ -13984,22 +13984,21 @@ STATUS: 500
 Internal Server Error
 ```
 
-## Test 7 - Database‑level metadata - Interpreting “all metadata present in the knowledge base”
+## Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base"
 
-Structure note: this test is mostly Neo4j-admin oriented. A direct SPARQL equivalent may not exist for several checks; SPARQL/Server blocks are added as placeholders to keep the same template.
+Structure note: this test is mostly Neo4j-admin oriented. For checks that have no strict SPARQL equivalent, SPARQL/Server blocks use the closest graph-level approximation.
 
 ### Query 1 - Show databases
 
 Objective: confirm target database context and avoid running diagnostics against the wrong environment.
 
 #### Cypher
-```Cypher
+```cypher
 SHOW DATABASES;
 ```
 
 #### Cypher results (JSON)
-```
-Error: timeout of 30000ms exceeded
+```json
 ```
 
 #### SPARQL
@@ -14024,19 +14023,50 @@ Error: timeout of 30000ms exceeded
 
 Objective: obtain a high-level schema inventory to support quality and interoperability checks.
 
-```Cypher
+#### Cypher
+```cypher
 CALL db.labels() YIELD label
 RETURN label
 ORDER BY label;
 ```
+
+#### Cypher results (JSON)
+```json
+```
+
+#### SPARQL
+```sparql
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT DISTINCT ?label
+WHERE {
+  ?n rdf:type ?label .
+}
+ORDER BY ?label
+```
+
+#### SPARQL results (JSON)
+```json
+```
+
+#### Server
+```bash
+curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}"   -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}"   -H 'Content-Type: application/json'   -H 'Accept: application/json'   -d '{
+    "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> SELECT DISTINCT ?label WHERE { ?n rdf:type ?label . } ORDER BY ?label",
+    "format": "json"
+  }'
+```
+
 #### Results:
+```json
 ```
-```
-### 3. Node schema: which labels have which properties (with counts)- UI
+
+### Query 3 - Node schema: which labels have which properties (with counts)
 
 Objective: inspect label-level property structure, expected datatypes, and mandatory flags for schema consistency.
 
-```Cypher
+#### Cypher
+```cypher
 CALL db.schema.nodeTypeProperties()
 YIELD nodeLabels, propertyName, propertyTypes, mandatory
 RETURN nodeLabels,
@@ -14046,28 +14076,87 @@ RETURN nodeLabels,
 ORDER BY nodeLabels, propertyName;
 ```
 
-#### Results:
-```
+#### Cypher results (JSON)
+```json
 ```
 
-### 4. All property keys registered in the database - UX
+#### SPARQL
+```sparql
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT ?label ?propertyName (COUNT(*) AS ?nodesWithProperty)
+WHERE {
+  ?n rdf:type ?label ;
+     ?property ?value .
+  BIND(STR(?property) AS ?propertyName)
+}
+GROUP BY ?label ?propertyName
+ORDER BY ?label DESC(?nodesWithProperty) ?propertyName
+```
+
+#### SPARQL results (JSON)
+```json
+```
+
+#### Server
+```bash
+curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}"   -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}"   -H 'Content-Type: application/json'   -H 'Accept: application/json'   -d '{
+    "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> SELECT ?label ?propertyName (COUNT(*) AS ?nodesWithProperty) WHERE { ?n rdf:type ?label ; ?property ?value . BIND(STR(?property) AS ?propertyName) } GROUP BY ?label ?propertyName ORDER BY ?label DESC(?nodesWithProperty) ?propertyName",
+    "format": "json"
+  }'
+```
+
+#### Results:
+```json
+```
+
+### Query 4 - All property keys registered in the database
 
 Objective: list the full attribute vocabulary and detect uncontrolled key proliferation.
 
-```Cypher
+#### Cypher
+```cypher
 CALL db.propertyKeys() YIELD propertyKey
 RETURN propertyKey
 ORDER BY propertyKey;
 ```
-#### Results:
-```
+
+#### Cypher results (JSON)
+```json
 ```
 
-### 5. Relationship schema: which relationship types have which properties- UI
+#### SPARQL
+```sparql
+SELECT DISTINCT ?propertyName
+WHERE {
+  ?n ?property ?value .
+  BIND(STR(?property) AS ?propertyName)
+}
+ORDER BY ?propertyName
+```
+
+#### SPARQL results (JSON)
+```json
+```
+
+#### Server
+```bash
+curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}"   -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}"   -H 'Content-Type: application/json'   -H 'Accept: application/json'   -d '{
+    "query": "SELECT DISTINCT ?propertyName WHERE { ?n ?property ?value . BIND(STR(?property) AS ?propertyName) } ORDER BY ?propertyName",
+    "format": "json"
+  }'
+```
+
+#### Results:
+```json
+```
+
+### Query 5 - Relationship schema: which relationship types have which properties
 
 Objective: verify relational schema consistency and check whether edge-level attributes follow a stable model.
 
-```Cypher
+#### Cypher
+```cypher
 CALL db.schema.relTypeProperties()
 YIELD relType, propertyName, propertyTypes, mandatory
 RETURN relType,
@@ -14076,16 +14165,47 @@ RETURN relType,
        mandatory
 ORDER BY relType, propertyName;
 ```
-#### Results:
-```
+
+#### Cypher results (JSON)
+```json
 ```
 
-### 6. Node property coverage by label- UI
+#### SPARQL
+```sparql
+SELECT ?relType ?propertyName (COUNT(*) AS ?relationshipsWithProperty)
+WHERE {
+  ?s ?predicate ?o .
+  ?s ?property ?v .
+  BIND(STR(?predicate) AS ?relType)
+  BIND(STR(?property) AS ?propertyName)
+}
+GROUP BY ?relType ?propertyName
+ORDER BY ?relType DESC(?relationshipsWithProperty) ?propertyName
+```
+
+#### SPARQL results (JSON)
+```json
+```
+
+#### Server
+```bash
+curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}"   -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}"   -H 'Content-Type: application/json'   -H 'Accept: application/json'   -d '{
+    "query": "SELECT ?relType ?propertyName (COUNT(*) AS ?relationshipsWithProperty) WHERE { ?s ?predicate ?o . ?s ?property ?v . BIND(STR(?predicate) AS ?relType) BIND(STR(?property) AS ?propertyName) } GROUP BY ?relType ?propertyName ORDER BY ?relType DESC(?relationshipsWithProperty) ?propertyName",
+    "format": "json"
+  }'
+```
+
+#### Results:
+```json
+```
+
+### Query 6 - Node property coverage by label
 
 Shows, for each label, which property keys appear and in how many nodes.
 Objective: evaluate completeness per entity type and find labels with weak metadata population.
 
-```Cypher
+#### Cypher
+```cypher
 MATCH (n)
 UNWIND labels(n) AS label
 UNWIND keys(n) AS propertyName
@@ -14094,16 +14214,48 @@ RETURN label,
        count(*) AS nodesWithProperty
 ORDER BY label, nodesWithProperty DESC, propertyName;
 ```
-#### Results:
-```
+
+#### Cypher results (JSON)
+```json
 ```
 
-### 7. Relationship property coverage by relationship type- UI
+#### SPARQL
+```sparql
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT ?label ?propertyName (COUNT(*) AS ?nodesWithProperty)
+WHERE {
+  ?n rdf:type ?label ;
+     ?property ?value .
+  BIND(STR(?property) AS ?propertyName)
+}
+GROUP BY ?label ?propertyName
+ORDER BY ?label DESC(?nodesWithProperty) ?propertyName
+```
+
+#### SPARQL results (JSON)
+```json
+```
+
+#### Server
+```bash
+curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}"   -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}"   -H 'Content-Type: application/json'   -H 'Accept: application/json'   -d '{
+    "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> SELECT ?label ?propertyName (COUNT(*) AS ?nodesWithProperty) WHERE { ?n rdf:type ?label ; ?property ?value . BIND(STR(?property) AS ?propertyName) } GROUP BY ?label ?propertyName ORDER BY ?label DESC(?nodesWithProperty) ?propertyName",
+    "format": "json"
+  }'
+```
+
+#### Results:
+```json
+```
+
+### Query 7 - Relationship property coverage by relationship type
 
 Shows, for each relationship type, which property keys appear and in how many relationships.
 Objective: evaluate completeness per predicate type and identify relations missing descriptive metadata.
 
-```Cypher
+#### Cypher
+```cypher
 MATCH ()-[r]->()
 UNWIND keys(r) AS propertyName
 RETURN type(r) AS relType,
@@ -14111,16 +14263,47 @@ RETURN type(r) AS relType,
        count(*) AS relationshipsWithProperty
 ORDER BY relType, relationshipsWithProperty DESC, propertyName;
 ```
-#### Results:
-```
+
+#### Cypher results (JSON) #op 
+```json
 ```
 
-### 8. Node labels without any properties- UI
+#### SPARQL
+```sparql
+SELECT ?relType ?propertyName (COUNT(*) AS ?relationshipsWithProperty)
+WHERE {
+  ?s ?predicate ?o .
+  ?s ?property ?v .
+  BIND(STR(?predicate) AS ?relType)
+  BIND(STR(?property) AS ?propertyName)
+}
+GROUP BY ?relType ?propertyName
+ORDER BY ?relType DESC(?relationshipsWithProperty) ?propertyName
+```
+
+#### SPARQL results (JSON) #op 
+```json
+```
+
+#### Server
+```bash
+curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}"   -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}"   -H 'Content-Type: application/json'   -H 'Accept: application/json'   -d '{
+    "query": "SELECT ?relType ?propertyName (COUNT(*) AS ?relationshipsWithProperty) WHERE { ?s ?predicate ?o . ?s ?property ?v . BIND(STR(?predicate) AS ?relType) BIND(STR(?property) AS ?propertyName) } GROUP BY ?relType ?propertyName ORDER BY ?relType DESC(?relationshipsWithProperty) ?propertyName",
+    "format": "json"
+  }'
+```
+
+#### Results: #op
+```json
+```
+
+### Query 8 - Node labels without any properties
 
 Useful to detect labels that only exist structurally and store no metadata fields.
 Objective: detect entity classes that may be semantically empty and require enrichment.
 
-```Cypher
+#### Cypher
+```cypher
 MATCH (n)
 UNWIND labels(n) AS label
 WITH label, n, size(keys(n)) AS propCount
@@ -14130,15 +14313,46 @@ RETURN label,
        count(CASE WHEN propCount > 0 THEN 1 END) AS nodesWithProperties
 ORDER BY nodesWithoutProperties DESC, label;
 ```
-#### Results:
-```
+
+#### Cypher results (JSON) #op
+```json
 ```
 
-### 9. Relationship types without any properties- UI
+#### SPARQL
+```sparql
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT ?label (COUNT(DISTINCT ?n) AS ?totalNodes)
+WHERE {
+  ?n rdf:type ?label .
+  FILTER NOT EXISTS { ?n ?p ?o . FILTER(?p != rdf:type) }
+}
+GROUP BY ?label
+ORDER BY DESC(?totalNodes) ?label
+```
+
+#### SPARQL results (JSON) #op
+```json
+```
+
+#### Server
+```bash
+curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}"   -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}"   -H 'Content-Type: application/json'   -H 'Accept: application/json'   -d '{
+    "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> SELECT ?label (COUNT(DISTINCT ?n) AS ?totalNodes) WHERE { ?n rdf:type ?label . FILTER NOT EXISTS { ?n ?p ?o . FILTER(?p != rdf:type) } } GROUP BY ?label ORDER BY DESC(?totalNodes) ?label",
+    "format": "json"
+  }'
+```
+
+#### Results: #op
+```json
+```
+
+### Query 9 - Relationship types without any properties
 
 Objective: detect predicate classes that may be too generic or insufficiently documented for analysis.
 
-```Cypher
+#### Cypher
+```cypher
 MATCH ()-[r]->()
 WITH type(r) AS relType, r, size(keys(r)) AS propCount
 RETURN relType,
@@ -14147,16 +14361,45 @@ RETURN relType,
        count(CASE WHEN propCount > 0 THEN 1 END) AS relationshipsWithProperties
 ORDER BY relationshipsWithoutProperties DESC, relType;
 ```
-#### Results:
-```
+
+#### Cypher results (JSON) #op
+```json
 ```
 
-### 10. Observed value types for node properties - UI
+#### SPARQL
+```sparql
+SELECT ?relType (COUNT(*) AS ?edges)
+WHERE {
+  ?s ?predicate ?o .
+  BIND(STR(?predicate) AS ?relType)
+}
+GROUP BY ?relType
+ORDER BY DESC(?edges)
+```
+
+#### SPARQL results (JSON) #op
+```json
+```
+
+#### Server
+```bash
+curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}"   -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}"   -H 'Content-Type: application/json'   -H 'Accept: application/json'   -d '{
+    "query": "SELECT ?relType (COUNT(*) AS ?edges) WHERE { ?s ?predicate ?o . BIND(STR(?predicate) AS ?relType) } GROUP BY ?relType ORDER BY DESC(?edges)",
+    "format": "json"
+  }'
+```
+
+#### Results: #op
+```json
+```
+
+### Query 10 - Observed value types for node properties
 
 This gives an empirical summary of the values currently stored, beyond the schema procedures.
 Objective: validate real-world datatype usage and identify type drift for the same property key.
 
-```Cypher
+#### Cypher
+```cypher
 MATCH (n)
 UNWIND labels(n) AS label
 UNWIND keys(n) AS propertyName
@@ -14167,15 +14410,47 @@ RETURN label,
        count(*) AS occurrences
 ORDER BY label, propertyName, occurrences DESC, observedType;
 ```
-#### Results:
-```
+
+#### Cypher results (JSON) #op
+```json
 ```
 
-### 11. Observed value types for relationship properties - UI
+#### SPARQL
+```sparql
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT ?label ?propertyName (DATATYPE(?value) AS ?observedType) (COUNT(*) AS ?occurrences)
+WHERE {
+  ?n rdf:type ?label ;
+     ?property ?value .
+  BIND(STR(?property) AS ?propertyName)
+}
+GROUP BY ?label ?propertyName (DATATYPE(?value))
+ORDER BY ?label ?propertyName DESC(?occurrences) ?observedType
+```
+
+#### SPARQL results (JSON) #op
+```json
+```
+
+#### Server
+```bash
+curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}"   -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}"   -H 'Content-Type: application/json'   -H 'Accept: application/json'   -d '{
+    "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> SELECT ?label ?propertyName (DATATYPE(?value) AS ?observedType) (COUNT(*) AS ?occurrences) WHERE { ?n rdf:type ?label ; ?property ?value . BIND(STR(?property) AS ?propertyName) } GROUP BY ?label ?propertyName (DATATYPE(?value)) ORDER BY ?label ?propertyName DESC(?occurrences) ?observedType",
+    "format": "json"
+  }'
+```
+
+#### Results: #op 
+```json
+```
+
+### Query 11 - Observed value types for relationship properties
 
 Objective: validate edge-property datatype consistency and detect modelling anomalies across relation types.
 
-```Cypher
+#### Cypher
+```cypher
 MATCH ()-[r]->()
 UNWIND keys(r) AS propertyName
 WITH type(r) AS relType, propertyName, valueType(r[propertyName]) AS observedType
@@ -14185,7 +14460,37 @@ RETURN relType,
        count(*) AS occurrences
 ORDER BY relType, propertyName, occurrences DESC, observedType;
 ```
-### Results:
+
+#### Cypher results (JSON) #op
+```json
+```
+
+#### SPARQL
+```sparql
+SELECT ?relType ?propertyName (DATATYPE(?value) AS ?observedType) (COUNT(*) AS ?occurrences)
+WHERE {
+  ?s ?predicate ?o .
+  ?s ?property ?value .
+  BIND(STR(?predicate) AS ?relType)
+  BIND(STR(?property) AS ?propertyName)
+}
+GROUP BY ?relType ?propertyName (DATATYPE(?value))
+ORDER BY ?relType ?propertyName DESC(?occurrences) ?observedType
+```
+
+#### SPARQL results (JSON) #op
+```json
+```
+
+#### Server
+```bash
+curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}"   -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}"   -H 'Content-Type: application/json'   -H 'Accept: application/json'   -d '{
+    "query": "SELECT ?relType ?propertyName (DATATYPE(?value) AS ?observedType) (COUNT(*) AS ?occurrences) WHERE { ?s ?predicate ?o . ?s ?property ?value . BIND(STR(?predicate) AS ?relType) BIND(STR(?property) AS ?propertyName) } GROUP BY ?relType ?propertyName (DATATYPE(?value)) ORDER BY ?relType ?propertyName DESC(?occurrences) ?observedType",
+    "format": "json"
+  }'
+```
+
+#### Results: #op
 ```json
 ```
 
@@ -14238,7 +14543,7 @@ GROUP BY ?sourceTag
 ORDER BY DESC(?count)
 ```
 
-##### Results
+##### Results #op
 ```json
 
 ```
@@ -14278,7 +14583,7 @@ RETURN
   count(DISTINCT CASE WHEN g.P131 IS NOT NULL OR g.P276 IS NOT NULL THEN g END) AS withAdminLocation;
 ```
 
-##### Cypher results (JSON)
+##### Cypher results (JSON) #op
 ```json
 ```
 
@@ -14301,8 +14606,11 @@ WHERE {
   }
 }
 ```
-##### Results
+##### Results #op 
 ```json
+
+STATUS: 500
+Internal Server Error
 
 ```
 #### Server (API)
@@ -14340,7 +14648,7 @@ RETURN g, coord
 LIMIT 100;
 ```
 
-##### Cypher results (JSON)
+##### Cypher results (JSON) #op
 ```json
 ```
 
@@ -14356,8 +14664,11 @@ WHERE {
 }
 LIMIT 100
 ```
-##### Results
+##### Results #op
 ```json
+
+STATUS: 500
+Internal Server Error
 
 ```
 #### Server (API)
@@ -14394,7 +14705,7 @@ RETURN
   count(DISTINCT CASE WHEN p.P569 IS NOT NULL OR p.P570 IS NOT NULL THEN p END) AS withBirthOrDeath;
 ```
 
-##### Cypher results (JSON)
+##### Cypher results (JSON) #op 
 ```json
 ```
 
@@ -14415,8 +14726,11 @@ WHERE {
   }
 }
 ```
-##### Results
+##### Results #op
 ```json
+
+STATUS: 500
+Internal Server Error
 
 ```
 #### Server (API)
@@ -14452,7 +14766,7 @@ RETURN
   count(DISTINCT CASE WHEN d.P1476 IS NOT NULL THEN d END) AS withTitle;
 ```
 
-##### Cypher results (JSON)
+##### Cypher results (JSON) #op 
 ```json
 ```
 
@@ -14466,8 +14780,11 @@ WHERE {
   OPTIONAL { ?d <http://www.wikidata.org/entity/P1476> ?title . BIND(?d AS ?withTitle) }
 }
 ```
-##### Results
+##### Results #op 
 ```json
+
+STATUS: 500
+Internal Server Error
 
 ```
 
@@ -14507,7 +14824,7 @@ ORDER BY nodes DESC
 LIMIT 100;
 ```
 
-##### Cypher results (JSON)
+##### Cypher results (JSON) #op 
 ```json
 ```
 
@@ -14523,8 +14840,11 @@ HAVING (COUNT(DISTINCT ?n) > 1)
 ORDER BY DESC(?nodes)
 LIMIT 100
 ```
-##### Results
+##### Results #op 
 ```json
+
+STATUS: 500
+Internal Server Error
 
 ```
 #### Server (API)
@@ -14561,7 +14881,7 @@ ORDER BY typeCount DESC
 LIMIT 100;
 ```
 
-##### Cypher results (JSON)
+##### Cypher results (JSON) #op
 ```json
 ```
 
@@ -14576,8 +14896,11 @@ HAVING (COUNT(DISTINCT ?type) > 3)
 ORDER BY DESC(?typeCount)
 LIMIT 100
 ```
-##### Results
+##### Results #op 
 ```json
+
+STATUS: 500
+Internal Server Error
 
 ```
 #### Server (API)
@@ -14593,7 +14916,7 @@ curl --fail-with-body --silent --show-error \
   }'
 ```
 
-##### Results:
+##### Results: #op
 ```json
 STATUS: 404
 404 page not found
@@ -14617,7 +14940,7 @@ MATCH (subject)-[r]->(object)
 RETURN id(subject) AS subject, type(r) AS predicate, id(object) AS object;
 ```
 
-###### Results
+###### Results #op 
 ```json
 
 ```
@@ -14629,7 +14952,7 @@ WHERE {
 }
 ```
 
-###### Results
+###### Results #op 
 ```json
 
 ```
@@ -14667,7 +14990,7 @@ RETURN id(n) AS subject, labels(n) AS labels, coalesce(n.name, n.title, n.text) 
 LIMIT 50;
 ```
 
-###### Results
+###### Results #op
 ```json
 
 ```
@@ -14686,9 +15009,10 @@ WHERE {
 }
 LIMIT 50
 ```
-###### Results
+###### Results #op 
 ```json
-
+STATUS: 500
+Internal Server Error
 ```
 
 ##### Server (SPARQL via API)
@@ -14704,7 +15028,7 @@ curl --fail-with-body --silent --show-error \
   }'
 ```
 
-###### Results:
+###### Results: #op
 ```json
 STATUS: 500
 Internal Server Error
@@ -14724,7 +15048,7 @@ SKIP 0
 LIMIT 25;
 ```
 
-###### Results
+###### Results #op 
 ```json
 
 ```
@@ -14740,7 +15064,7 @@ LIMIT 25
 OFFSET 0
 ```
 
-###### Results
+###### Results #op 
 ```json
 
 ```
@@ -14758,7 +15082,7 @@ curl --fail-with-body --silent --show-error \
   }'
 ```
 
-###### Results:
+###### Results: #op 
 ```json
 STATUS: 404
 404 page not found
@@ -14781,7 +15105,8 @@ RETURN count(*) > 0 AS result;
 ```
 ###### Results
 ```json
-
+STATUS: 500
+Internal Server Error
 ```
 
 ##### SPARQL
@@ -14793,7 +15118,8 @@ WHERE {
 ```
 ###### Results
 ```json
-
+STATUS: 500
+Internal Server Error
 ```
 
 ##### Server (SPARQL via API)
@@ -14829,7 +15155,7 @@ RETURN count(*) > 0 AS result;
 ```
 ###### Results
 ```json
-
+{"results":[{"result":true}],"columns":["result"]}
 ```
 
 ##### SPARQL
@@ -14844,7 +15170,8 @@ WHERE {
 ```
 ###### Results
 ```json
-
+STATUS: 500
+Internal Server Error
 ```
 
 ##### Server (SPARQL via API)
@@ -14885,7 +15212,7 @@ MATCH (n)
 RETURN count(n) AS count;
 ```
 
-###### Results
+###### Results #op
 ```json
 ```
 ##### SPARQL
@@ -14903,6 +15230,8 @@ WHERE {
 ```
 ###### Results
 ```json
+STATUS: 500
+Internal Server Error
 ```
 
 ##### Server (SPARQL via API)
@@ -14935,6 +15264,7 @@ RETURN count(r) AS count;
 ```
 ###### Results
 ```json
+{"results":[{"count":4482}],"columns":["count"]}
 ```
 
 ##### SPARQL
@@ -14946,6 +15276,8 @@ WHERE {
 ```
 ###### Results
 ```json
+STATUS: 500
+Internal Server Error
 ```
 
 ##### Server (SPARQL via API)
@@ -14985,7 +15317,7 @@ CALL {
 RETURN nodes, relationships;
 ```
 
-###### Results
+###### Results #op 
 ```json
 ```
 
@@ -15000,6 +15332,8 @@ WHERE {
 ```
 ###### Results
 ```json
+STATUS: 500
+Internal Server Error
 ```
 
 ##### Server (SPARQL via API)
@@ -15036,6 +15370,7 @@ RETURN id(n) AS id, labels(n) AS labels, properties(n) AS props, collect({ type:
 ```
 ###### Results
 ```json
+{"results":[{"id":0,"labels":["Document"],"props":{"name":"72148","_normalized_name":"72148"},"outRels":[{"targetId":null,"type":null}]}],"columns":["id","labels","props","outRels"]}
 ```
 
 ##### SPARQL
@@ -15045,7 +15380,7 @@ WHERE {
   VALUES ?n { <https://example.org/resource/0> }
 }
 ```
-###### Results
+###### Results #op
 ```json
 ```
 
@@ -15080,7 +15415,7 @@ RETURN id(n) AS subject, labels(n) AS labels, coalesce(n.name, n.title, n.text) 
 LIMIT 50;
 ```
 
-###### Results
+###### Results #op
 ```json
 ```
 
@@ -15100,6 +15435,8 @@ LIMIT 50
 ```
 ###### Results
 ```json
+STATUS: 500
+Internal Server Error
 ```
 
 ##### Server (SPARQL via API)
@@ -15136,7 +15473,7 @@ SKIP 0
 LIMIT 25;
 ```
 
-###### Results
+###### Results #op
 ```json
 ```
 
@@ -15151,7 +15488,7 @@ LIMIT 25
 OFFSET 0
 ```
 
-###### Results
+###### Results #op
 ```json
 ```
 
@@ -15188,7 +15525,7 @@ ORDER BY count DESC
 LIMIT 20;
 ```
 
-###### Results
+###### Results #op
 ```json
 ```
 
@@ -15205,7 +15542,7 @@ ORDER BY DESC(?count)
 LIMIT 20
 ```
 
-###### Results
+###### Results #op
 ```json
 ```
 
@@ -15243,6 +15580,8 @@ RETURN nodeCount, relCount;
 ```
 ###### Results
 ```json
+STATUS: 500
+Internal Server Error
 ```
 
 ##### SPARQL
@@ -15265,7 +15604,7 @@ WHERE {
   }
 }
 ```
-###### Results
+###### Results #op
 ```json
 ```
 
@@ -15291,19 +15630,20 @@ STATUS: 404
 # Summary
 ## Searches compared
 
-| Objective | task | Cypher | SPARQL | Server |
-| --------- | ---- | ------ | ------ | ------ |
-| 1. SELECT | Triple-pattern retrieval (`?s ?p ?o`) | Success | Mixed (`timeout` first, then success) | `500` |
-| 2. FILTER | String filter (`brigadista`) | Success (`[]`, no matches) | `500` | `500` |
-| 3. LIMIT/OFFSET | Ordered pagination | Success | `timeout` | `404` |
-| 4. ASK | Existence checks | Success | Mixed (one `timeout`, one success) | `404` |
-| 5. COUNT (ext) | Node/relationship counting | Success | Failed (`timeout` / `500`) | `404` |
-| 6. CONSTRUCT | Graph-shaped export | Success | `timeout` | `404` |
-| 7. DESCRIBE | Entity-centric inspection | Success | Success (minimal payload) | `404` |
-| 8. FILTER (retest) | String filter (repeat block) | Success (`[]`, no matches) | `500` | `404` |
-| 9. ORDER BY | Stable sorting | `500` | `timeout` | `404` |
-| 9b. GROUP BY | Type distribution | Success | Empty result block | `404` |
-| 10. AGGREGATIONS | Multi-metric aggregation | Empty result block | Empty result block | `404` |
+| Objective          | task                                  | Cypher                     | SPARQL                                | Server |
+| ------------------ | ------------------------------------- | -------------------------- | ------------------------------------- | ------ |
+| 1. SELECT          | Triple-pattern retrieval (`?s ?p ?o`) | Success                    | Mixed (`timeout` first, then success) | `500`  |
+| 2. FILTER          | String filter (`brigadista`)          | Success (`[]`, no matches) | `500`                                 | `500`  |
+| 3. LIMIT/OFFSET    | Ordered pagination                    | Success                    | `timeout`                             | `404`  |
+| 4. ASK             | Existence checks                      | Success                    | Mixed (one `timeout`, one success)    | `404`  |
+| 5. COUNT (ext)     | Node/relationship counting            | Success                    | Failed (`timeout` / `500`)            | `404`  |
+| 6. CONSTRUCT       | Graph-shaped export                   | Success                    | `timeout`                             | `404`  |
+| 7. DESCRIBE        | Entity-centric inspection             | Success                    | Success (minimal payload)             | `404`  |
+| 8. FILTER (retest) | String filter (repeat block)          | Success (`[]`, no matches) | `500`                                 | `404`  |
+| 9. ORDER BY        | Stable sorting                        | `500`                      | `timeout`                             | `404`  |
+| 9b. GROUP BY       | Type distribution                     | Success                    | Empty result block                    | `404`  |
+| 10. AGGREGATIONS   | Multi-metric aggregation              | Empty result block         | Empty result block                    | `404`  |
+
 
 ## Server access assessment (live re-check)
 
