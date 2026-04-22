@@ -11,8 +11,6 @@ This test-bench covers a full validation cycle of the HerStory graph:
 
 The test were done comparing the different channels: UI (cypher-Sparql), server vía API key and in some cases the Auraneo4j graph. 
 
-[[Evaluation framework]]
-
 # 1. Server - via API - UI
 
 ## Test 0 - predefined queries
@@ -31,6 +29,7 @@ LIMIT 30
 ```
 
 > Clarify Q108163, P1476> Miquel
+> 
 
 #### Results
 ```json
@@ -416,6 +415,33 @@ Second:
 
 > Same label = node ❓
 > Some present Null - is this from the original database or is the data lost? ☝️ > Miquel
+> My review is: > **Proposed revision of the query and date modelling**  
+>  
+> This second query reproduces the same conceptual mismatches identified in the previous case, and additionally reveals a data-quality problem in the handling of incomplete dates.  
+>  
+> **1. Incorrect Wikidata query patterns**  
+> The query uses `rdf:type` and `P1476` in a way that is not aligned with the Wikidata RDF model. In Wikidata, class membership should be queried through **instance of (P31)**, typically as `wdt:P31`, whereas entity labels should be retrieved through `rdfs:label`. `P1476` denotes **title**, i.e. the published title of a work, and should not be used as the generic label of a person.  
+>  
+> **2. Correct treatment of missing values**  
+> The presence of `null` values for birth or death dates appears to be acceptable when the source database does not provide those data. In such cases, the graph correctly reflects the absence of information.  
+>  
+> **3. Incorrect completion of partial dates**  
+> A more serious issue arises when the source provides only a partial date, such as a year without month or day. In the current graph, these values are expanded into fully specified dates such as `1912-01-01`. This is semantically incorrect, because the original source does not assert either the month or the day. These components are therefore artificial and should not be added during transformation.  
+>  
+> **4. Inappropriate use of `dateTime` values**  
+> In some cases, the graph further converts such incomplete dates into `dateTime` values (e.g. `1908-01-01T00:00:00Z`). This is also inappropriate, since it introduces a level of temporal precision — including time and timezone — that is completely absent from the source data.  
+>  
+> **Recommendation**  
+> The query and the transformation pipeline should be revised so that:  
+>  
+> * persons are retrieved with `wdt:P31 wd:Q5`,  
+> * entity labels are obtained through `rdfs:label`,  
+> * `P1476` is not used as a substitute for labels,  
+> * missing dates remain missing,  
+> * and partial dates are preserved as partial dates, without inventing month, day, or time components.  
+>  
+> **Data-quality principle**  
+> The graph should preserve the precision of the source data rather than increase it artificially. When only a year is known, the RDF representation should encode that reduced precision explicitly, instead of converting it into a fully specified calendar date or date-time value.
 >
 
 ### People (Server)
@@ -6683,6 +6709,48 @@ Response without limit
 ]
 ```
  > Some Nodes = labels some are null but indicate location (DB problem?) Miquel
+ > > **Comparison with the original dataset and identification of modelling issues**  
+>  
+> A comparison with the original dataset (Fosses comunes a Catalunya) reveals several modelling and data representation issues.  
+>  
+> **1. Lack of a consistent resource identification strategy**  
+> The graph does not appear to follow a single, consistent strategy for identifying resources. In some cases, nodes are represented by an opaque string identifier such as `4:8fe754b2-5d6b-4db6-9374-cf11f861e0f7:652`, whereas in other cases they are represented directly by a string literal such as `"Casa Rovira-Sança"`. The generation logic behind identifiers of the first type is not clear.  
+>  
+> This should be brought as close as possible to the Wikidata model. As a general principle, each item/entity should have a unique identifier suitable for use as the local name of a URI, while human-readable strings should be reserved for `rdfs:label` or an equivalent labelling property. The current mixture of identifiers and literals at node level introduces inconsistency and makes the graph structure more difficult to interpret and validate. This point should be discussed and agreed upon with Peninsula.  
+>  
+> **2. Missing labels should be completed from source designations when available**  
+> In cases where the `label` field is empty, it should be populated from the corresponding designation literal whenever that value is present in the original source database. The absence of a label in the graph is not justified if the source already provides an explicit designation for the same entity.  
+>  
+> For example, the following output:  
+>  
+> ```json  
+> {  
+>   "node": "Cementiri de la Jonquera",  
+>   "label": null,  
+>   "location": "La Jonquera"  
+> }  
+> ```  
+>  
+> should instead be represented as:  
+>  
+> ```json  
+> {  
+>   "node": "Cementiri de la Jonquera",  
+>   "label": "Cementiri de la Jonquera",  
+>   "location": "La Jonquera"  
+> }  
+> ```  
+>  
+> **Recommendation**  
+> The transformation process should be revised so that:  
+>  
+> * each entity is assigned a stable and unique identifier,  
+> * literals are not used as substitutes for resource identifiers,  
+> * labels are systematically mapped to `rdfs:label` (or an equivalent property),  
+> * and missing labels are backfilled from source designations whenever such values exist in the original dataset.  
+>  
+> **Data-modelling principle**  
+> Resource identity and human-readable labelling should remain clearly separated. A graph is more robust, interoperable, and easier to maintain when URI construction is based on stable identifiers and textual designations are handled exclusively as labels.
 ### Mass graves (Server)
 
 ```sparql
@@ -12980,6 +13048,8 @@ curl --fail-with-body --silent --show-error \
 ## Test 1 – Total number of nodes
 
 Objective: verify the global size of the graph at node level as a baseline control metric before any other evaluation.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 ### Cypher:
 
@@ -13074,6 +13144,8 @@ curl: (22) The requested URL returned error: 422
 ## Test 2 – Total number of relationships
 
 Objective: verify the global size of the graph at relationship/triple level and track growth or loss across runs.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 ### Cypher
 ```cypher
@@ -13122,6 +13194,8 @@ Internal Server Error
 
 ## Test 3 – Nodes per label (overview)
 Objective: identify the semantic classes present in the graph and confirm that expected node types are available.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 ### Cypher
 ```cypher
@@ -13160,7 +13234,7 @@ ORDER BY label;
 ]
 ```
 ### SPARQL:
-```
+```sparql
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
 SELECT DISTINCT ?label
@@ -13209,6 +13283,8 @@ Internal Server Error%
 ```
 ## Test 4 – Relationships per type
 Objective: validate that key predicates exist and estimate their volume to detect missing or under-populated relations.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 ### Cypher
 ```cypher
@@ -13268,17 +13344,6 @@ curl --fail-with-body --silent --show-error \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
-    "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> SELECT DISTINCT ?label WHERE { ?n rdf:type ?label . } ORDER BY ?label",
-    "format": "json"
-  }'
-curl: (22) The requested URL returned error: 500
-Internal Server Error%
-elenagomez@Elenas-MacBook-Pro Documents % curl --fail-with-body --silent --show-error \
-  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
     "query": "PREFIX ex: <https://example.org/ns#> SELECT (COUNT(*) AS ?locatedInRels) WHERE { ?subject ex:LOCATED_IN ?object . }",
     "format": "json"
   }'
@@ -13287,6 +13352,8 @@ elenagomez@Elenas-MacBook-Pro Documents % curl --fail-with-body --silent --show-
 ### Query 1 - Node properties: list all keys and how many nodes have each
 
 Objective: measure metadata coverage across node attributes and identify sparse or overused properties.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 #### Cypher
 ```Cypher
@@ -13701,6 +13768,8 @@ Internal Server Error%
 ### Query 2 - Per relationship type: with vs. without properties
 
 Objective: check which relationship types preserve metadata and which are being stored as bare links.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 #### Cypher
 ```Cypher
@@ -13756,6 +13825,8 @@ Internal Server Error
 
 ### Query 3 - Relationships per label
 Objective: cross-check node-label and property co-occurrence to detect uneven modelling between entity classes.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 #### Cypher
 ```Cypher
@@ -13938,6 +14009,8 @@ Internal Server Error
 ### Query 1 - Count relationships with vs. without any properties (global)
 
 Objective: quantify how much relational context is encoded as properties versus only as edge existence.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 #### Cypher
 ```Cypher
@@ -13999,6 +14072,8 @@ Structure note: this test is mostly Neo4j-admin oriented. For checks that have n
 ### Query 1 - Show databases #neo4j5
 
 Objective: confirm target database context and avoid running diagnostics against the wrong environment.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: query/API response exceeded timeout window (performance or connectivity bottleneck).
 
 #### Cypher
 ```cypher
@@ -14022,8 +14097,53 @@ RETURN name, currentStatus, default, home, type, access
 ORDER BY name;
 ```
 ##### Results neo4j5
-```
-Error: timeout of 30000ms exceeded
+```json
+
+{
+  "results": [
+    {
+      "name": "7e5d5b91",
+      "currentStatus": "online",
+      "default": false,
+      "home": true,
+      "type": "standard",
+      "access": "read-write"
+    },
+    {
+      "name": "system",
+      "currentStatus": "online",
+      "default": false,
+      "home": false,
+      "type": "system",
+      "access": "read-write"
+    },
+    {
+      "name": "system",
+      "currentStatus": "online",
+      "default": false,
+      "home": false,
+      "type": "system",
+      "access": "read-write"
+    },
+    {
+      "name": "system",
+      "currentStatus": "online",
+      "default": false,
+      "home": false,
+      "type": "system",
+      "access": "read-write"
+    }
+  ],
+  "columns": [
+    "name",
+    "currentStatus",
+    "default",
+    "home",
+    "type",
+    "access"
+  ]
+}
+
 ```
 
 #### SPARQL
@@ -14068,6 +14188,8 @@ curl --fail-with-body --silent --show-error \
 ### Query 2 - Labels, relationship types, property keys (structural overview) #neo4j5
 
 Objective: obtain a high-level schema inventory to support quality and interoperability checks.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 #### Cypher
 ```cypher
@@ -14109,11 +14231,15 @@ SHOW PROPERTY KEYS YIELD propertyKey
 RETURN "propertyKey" AS category, propertyKey AS value
 ORDER BY category, value;
 ```
-##### Results neo4j5 #op 
-```
-```
+##### Results neo4j5
+```json
 
-#### SPARQL
+{
+  "ok": false,
+  "errorType": "TimeoutError",
+  "error": "The read operation timed out"
+}
+
 ```sparql
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
@@ -14141,13 +14267,15 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
   }'
 ```
 
-##### Results: #op 
+##### Results:
 ```json
 ```
 
 ### Query 3 - Node schema: which labels have which properties (with counts) #neo4j5
 
 Objective: inspect label-level property structure, expected datatypes, and mandatory flags for schema consistency.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -14190,13 +14318,846 @@ RETURN nodeLabel,
        totalNodes,
        (nodesWithProperty = totalNodes) AS mandatoryApprox
 ORDER BY nodeLabel, propertyName;
+```
+##### Results neo4j5
+```json
 
-```
-##### Results neo4j5 #op 
-```
-```
+{
+  "results": [
+    {
+      "nodeLabel": "Country",
+      "propertyName": "_normalized_name",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 42,
+      "totalNodes": 42,
+      "mandatoryApprox": true
+    },
+    {
+      "nodeLabel": "Country",
+      "propertyName": "name",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 42,
+      "totalNodes": 42,
+      "mandatoryApprox": true
+    },
+    {
+      "nodeLabel": "Document",
+      "propertyName": "_normalized_name",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 724,
+      "totalNodes": 724,
+      "mandatoryApprox": true
+    },
+    {
+      "nodeLabel": "Document",
+      "propertyName": "name",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 724,
+      "totalNodes": 724,
+      "mandatoryApprox": true
+    },
+    {
+      "nodeLabel": "Event",
+      "propertyName": "_normalized_name",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 39,
+      "totalNodes": 39,
+      "mandatoryApprox": true
+    },
+    {
+      "nodeLabel": "Event",
+      "propertyName": "name",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 39,
+      "totalNodes": 39,
+      "mandatoryApprox": true
+    },
+    {
+      "nodeLabel": "Location",
+      "propertyName": "_normalized_name",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 417,
+      "totalNodes": 417,
+      "mandatoryApprox": true
+    },
+    {
+      "nodeLabel": "Location",
+      "propertyName": "name",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 417,
+      "totalNodes": 417,
+      "mandatoryApprox": true
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "Categoria_de_fosses",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 9,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "Comarca",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 9,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "Comunitat_aut_noma",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 9,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "Conservaci_",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 9,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "Context_defunci_",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 9,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "Fitxa",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 9,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "Mida",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 9,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "P131",
+      "propertyTypes": [
+        "LIST<STRING NOT NULL> NOT NULL",
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 218,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "P131_municipality",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 10,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "P131_municipio",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 10,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "P131_province",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 10,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "P131_provincia",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 10,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "P1476",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 470,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "P17",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 248,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "P625",
+      "propertyTypes": [
+        "LIST<FLOAT NOT NULL> NOT NULL",
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 183,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "P625_lat",
+      "propertyTypes": [
+        "FLOAT NOT NULL"
+      ],
+      "nodesWithProperty": 259,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "P625_lng",
+      "propertyTypes": [
+        "FLOAT NOT NULL"
+      ],
+      "nodesWithProperty": 256,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "T_tol",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 28,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "Tipologia_inhumats",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 9,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "categoria",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 20,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "categoria_de_fosses",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 90,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "categoria_fosses",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 20,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "category",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 40,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "comarca",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 20,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "comunitat_autonoma",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 20,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "conservacio",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 123,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "conservation",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 40,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "context_defuncio",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 60,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "coordenadas_lat",
+      "propertyTypes": [
+        "FLOAT NOT NULL"
+      ],
+      "nodesWithProperty": 10,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "coordenadas_lng",
+      "propertyTypes": [
+        "FLOAT NOT NULL"
+      ],
+      "nodesWithProperty": 10,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "death_context",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 10,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "fecha_nacimiento",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 1,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "fitxa",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 119,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "fosa_comun",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 1,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "id",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 129,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "id_fosa",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 312,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "latitude",
+      "propertyTypes": [
+        "FLOAT NOT NULL"
+      ],
+      "nodesWithProperty": 19,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "longitude",
+      "propertyTypes": [
+        "FLOAT NOT NULL"
+      ],
+      "nodesWithProperty": 19,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "mida",
+      "propertyTypes": [
+        "STRING NOT NULL",
+        "INTEGER NOT NULL"
+      ],
+      "nodesWithProperty": 123,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "municipio",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 10,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "nombre",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 13,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "pais",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 12,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "provincia",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 30,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "size",
+      "propertyTypes": [
+        "INTEGER NOT NULL"
+      ],
+      "nodesWithProperty": 39,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "tipologia",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 10,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "tipologia_inhumats",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 90,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "title",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 10,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "titol",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 410,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "typology",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 10,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "url",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 29,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "MassGrave",
+      "propertyName": "victim_typology",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 10,
+      "totalNodes": 492,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "Organization",
+      "propertyName": "_normalized_name",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 171,
+      "totalNodes": 171,
+      "mandatoryApprox": true
+    },
+    {
+      "nodeLabel": "Organization",
+      "propertyName": "name",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 171,
+      "totalNodes": 171,
+      "mandatoryApprox": true
+    },
+    {
+      "nodeLabel": "Person",
+      "propertyName": "P106",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 130,
+      "totalNodes": 1030,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "Person",
+      "propertyName": "P1142",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 103,
+      "totalNodes": 1030,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "Person",
+      "propertyName": "P1476",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 1004,
+      "totalNodes": 1030,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "Person",
+      "propertyName": "P27",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 674,
+      "totalNodes": 1030,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "Person",
+      "propertyName": "P569",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 193,
+      "totalNodes": 1030,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "Person",
+      "propertyName": "P570",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 31,
+      "totalNodes": 1030,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "Person",
+      "propertyName": "P742",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 199,
+      "totalNodes": 1030,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "Person",
+      "propertyName": "_normalized_name",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 24,
+      "totalNodes": 1030,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "Person",
+      "propertyName": "category",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 6,
+      "totalNodes": 1030,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "Person",
+      "propertyName": "comments",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 73,
+      "totalNodes": 1030,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "Person",
+      "propertyName": "description",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 5,
+      "totalNodes": 1030,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "Person",
+      "propertyName": "gender",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 106,
+      "totalNodes": 1030,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "Person",
+      "propertyName": "id",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 987,
+      "totalNodes": 1030,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "Person",
+      "propertyName": "instance_of",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 1,
+      "totalNodes": 1030,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "Person",
+      "propertyName": "is_primary",
+      "propertyTypes": [
+        "BOOLEAN NOT NULL"
+      ],
+      "nodesWithProperty": 1,
+      "totalNodes": 1030,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "Person",
+      "propertyName": "name",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 24,
+      "totalNodes": 1030,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "Person",
+      "propertyName": "node_id",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 18,
+      "totalNodes": 1030,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "Person",
+      "propertyName": "notes",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 3,
+      "totalNodes": 1030,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "Person",
+      "propertyName": "origin",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 3,
+      "totalNodes": 1030,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "Person",
+      "propertyName": "status",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 6,
+      "totalNodes": 1030,
+      "mandatoryApprox": false
+    },
+    {
+      "nodeLabel": "Person",
+      "propertyName": "uuid",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "nodesWithProperty": 6,
+      "totalNodes": 1030,
+      "mandatoryApprox": false
+    }
+  ],
+  "columns": [
+    "nodeLabel",
+    "propertyName",
+    "propertyTypes",
+    "nodesWithProperty",
+    "totalNodes",
+    "mandatoryApprox"
+  ]
+}
 
-#### SPARQL
 ```sparql
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
@@ -14234,6 +15195,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 ### Query 4 - All property keys registered in the database #neo4j5
 
 Objective: list the full attribute vocabulary and detect uncontrolled key proliferation.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: query/API response exceeded timeout window (performance or connectivity bottleneck).
 
 #### Cypher
 ```cypher
@@ -14253,31 +15216,19 @@ ORDER BY propertyKey;
 
 #### Cypher neo4j5
 ```cypher
-MATCH (n)
-UNWIND labels(n) AS nodeLabel
-WITH nodeLabel, count(*) AS totalNodes
-MATCH (m)
-WHERE nodeLabel IN labels(m)
-UNWIND keys(m) AS propertyName
-WITH nodeLabel, propertyName, totalNodes, m[propertyName] AS v
-WITH nodeLabel,
-     propertyName,
-     totalNodes,
-     count(*) AS nodesWithProperty,
-     collect(DISTINCT valueType(v)) AS propertyTypes
-RETURN nodeLabel,
-       propertyName,
-       propertyTypes,
-       nodesWithProperty,
-       totalNodes,
-       (nodesWithProperty = totalNodes) AS mandatoryApprox
-ORDER BY nodeLabel, propertyName;
+SHOW PROPERTY KEYS YIELD propertyKey
+RETURN propertyKey
+ORDER BY propertyKey;
 ```
-##### Results neo4j5 #op 
-```
-```
+##### Results neo4j5
+```json
 
-#### SPARQL
+{
+  "ok": false,
+  "status": 500,
+  "error": "Internal Server Error"
+}
+
 ```sparql
 SELECT DISTINCT ?propertyName
 WHERE {
@@ -14316,6 +15267,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 ### Query 5 - Relationship schema: which relationship types have which properties #neo4j5
 
 Objective: verify relational schema consistency and check whether edge-level attributes follow a stable model.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -14358,11 +15311,102 @@ RETURN relType,
        (relationshipsWithProperty = totalRelationships) AS mandatoryApprox
 ORDER BY relType, propertyName;
 ```
-##### Results neo4j5 #op 
-```
-```
+##### Results neo4j5
+```json
 
-#### SPARQL
+{
+  "results": [
+    {
+      "relType": "DETAINED_AT",
+      "propertyName": "date",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "relationshipsWithProperty": 1,
+      "totalRelationships": 2,
+      "mandatoryApprox": false
+    },
+    {
+      "relType": "DETAINED_AT",
+      "propertyName": "end_date",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "relationshipsWithProperty": 1,
+      "totalRelationships": 2,
+      "mandatoryApprox": false
+    },
+    {
+      "relType": "DETAINED_AT",
+      "propertyName": "start_date",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "relationshipsWithProperty": 1,
+      "totalRelationships": 2,
+      "mandatoryApprox": false
+    },
+    {
+      "relType": "LOCATED_IN",
+      "propertyName": "context",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "relationshipsWithProperty": 1,
+      "totalRelationships": 1684,
+      "mandatoryApprox": false
+    },
+    {
+      "relType": "LOCATED_IN",
+      "propertyName": "date",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "relationshipsWithProperty": 1,
+      "totalRelationships": 1684,
+      "mandatoryApprox": false
+    },
+    {
+      "relType": "TRAVELLED_TO",
+      "propertyName": "date",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "relationshipsWithProperty": 1,
+      "totalRelationships": 5,
+      "mandatoryApprox": false
+    },
+    {
+      "relType": "TRAVELLED_TO",
+      "propertyName": "vessel",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "relationshipsWithProperty": 1,
+      "totalRelationships": 5,
+      "mandatoryApprox": false
+    },
+    {
+      "relType": "TREATED_AT",
+      "propertyName": "date",
+      "propertyTypes": [
+        "STRING NOT NULL"
+      ],
+      "relationshipsWithProperty": 2,
+      "totalRelationships": 128,
+      "mandatoryApprox": false
+    }
+  ],
+  "columns": [
+    "relType",
+    "propertyName",
+    "propertyTypes",
+    "relationshipsWithProperty",
+    "totalRelationships",
+    "mandatoryApprox"
+  ]
+}
+
 ```sparql
 SELECT ?relType ?propertyName (COUNT(*) AS ?relationshipsWithProperty)
 WHERE {
@@ -14400,6 +15444,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 
 Shows, for each label, which property keys appear and in how many nodes.
 Objective: evaluate completeness per entity type and find labels with weak metadata population.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -14460,6 +15506,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 
 Shows, for each relationship type, which property keys appear and in how many relationships.
 Objective: evaluate completeness per predicate type and identify relations missing descriptive metadata.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -14505,6 +15553,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 
 Useful to detect labels that only exist structurally and store no metadata fields.
 Objective: detect entity classes that may be semantically empty and require enrichment.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -14551,6 +15601,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 ### Query 9 - Relationship types without any properties
 
 Objective: detect predicate classes that may be too generic or insufficiently documented for analysis.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -14595,6 +15647,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 
 This gives an empirical summary of the values currently stored, beyond the schema procedures.
 Objective: validate real-world datatype usage and identify type drift for the same property key.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -14643,6 +15697,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 ### Query 11 - Observed value types for relationship properties
 
 Objective: validate edge-property datatype consistency and detect modelling anomalies across relation types.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -14695,6 +15751,8 @@ Purpose: validate that the three source databases (`Cultura y censura`, `fosas c
 ### Test A1 - Source footprint by provenance string
 
 Objective: verify that all three expected sources are present in the graph after full ingestion.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -14761,6 +15819,8 @@ STATUS: 404
 ### Test A2 - Fosas comunes required fields completeness
 
 Objective: validate required mapped fields (`name/title`, `country`, and at least one location field) for mass-grave entities.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -14827,6 +15887,8 @@ STATUS: 404
 ### Test A3 - Fosas comunes coordinate integrity (P625)
 
 Objective: detect mass-grave records with malformed coordinate literals.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -14884,6 +15946,8 @@ STATUS: 404
 ### Test B1 - SIDBRINT person integrity
 
 Objective: validate that person entities include core identity fields (label and at least one temporal marker).
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -14945,6 +16009,8 @@ STATUS: 404
 ### Test C1 - Cultura y censura document integrity
 
 Objective: verify document-class entities and minimal descriptive metadata.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -14988,1260 +16054,211 @@ curl --fail-with-body --silent --show-error \
     "format": "json"
   }'
 ```
+---
+tags:
+  - op/test
+date: 2026-04-17
+---
+# 1. Server - via API - UI
 
-##### Results:
-```json
-STATUS: 404
-404 page not found
-```
+## Test 0 - predefined queries
 
+### Main nodes (UI)
 
-### Test X1 - Cross-source duplicate candidates by normalized title
-
-Objective: detect potential duplicate entities generated by multi-source ingest.
-
-#### Cypher
-```cypher
-MATCH (n)
-WHERE n.P1476 IS NOT NULL
-WITH toLower(replace(replace(replace(toString(n.P1476), " ", ""), "-", ""), ".", "")) AS normalizedLabel, n
-WITH normalizedLabel, count(DISTINCT n) AS nodes
-WHERE nodes > 1
-RETURN normalizedLabel, nodes
-ORDER BY nodes DESC
-LIMIT 100;
-```
-
-##### Cypher results (JSON)
-```json\nSTATUS: 404\n404 page not found\n```
-
-#### Platform (SPARQL)
-```sparql
-SELECT ?normalizedLabel (COUNT(DISTINCT ?n) AS ?nodes)
+```Sparql
+SELECT ?node ?label ?location
 WHERE {
-  ?n <http://www.wikidata.org/entity/P1476> ?label .
-  BIND(LCASE(REPLACE(STR(?label), "[^\\p{L}\\p{N}]+", "")) AS ?normalizedLabel)
+  ?node <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.wikidata.org/entity/Q108163> .
+  ?node <http://www.wikidata.org/entity/P1476> ?label .
+  OPTIONAL { ?node <http://www.wikidata.org/entity/P131> ?location }
 }
-GROUP BY ?normalizedLabel
-HAVING (COUNT(DISTINCT ?n) > 1)
-ORDER BY DESC(?nodes)
-LIMIT 100
+ORDER BY ?label
+LIMIT 30
 ```
-##### Results
+
+> Clarify Q108163, P1476> Miquel
+> On diu > Clarify Q108163, P1476> Miquel  
+>> **Proposed revision of the query**  
+>  
+> The current query presents three conceptual mismatches with the RDF/Wikidata data model.  
+>  
+> **1. Inappropriate use of `Q108163` as a generic class**  
+> The use of `Q108163` (“proposition”) is not appropriate in this context. It does not denote the general class of RDF-described entities, but a specific conceptual notion. If the intention is to refer to arbitrary RDF entities, `rdfs:Resource` is a closer semantic match. If, instead, the query is intended to retrieve a specific type of Wikidata entity, then a domain-appropriate Wikidata class should be selected.  
+>  
+> **2. Incorrect use of `rdf:type` to express Wikidata class membership**  
+> In the Wikidata model, class membership should be expressed through **instance of (P31)**. Therefore, the pattern using `rdf:type` should be replaced with the corresponding Wikidata property, typically `wdt:P31` in the direct claim representation.  
+>  
+> **3. Incorrect use of `P1476` as an item label**  
+> `P1476` corresponds to **title**, i.e. the published name of a work, and its datatype is *monolingual text*. It is not the general-purpose label of an item. For item labels in RDF/Wikidata, the appropriate predicate is `rdfs:label`. Accordingly, `P1476` should only be used when the query specifically targets the title of a work, not the generic label of an entity.  
+>  
+> **Recommendation**  
+> The query should be revised so that:  
+>  
+> * class membership is expressed with `wdt:P31`,  
+> * entity labels are retrieved with `rdfs:label`,  
+> * `P1476` is reserved for titles of works only,  
+> * and the class constraint is replaced with either `rdfs:Resource` or, preferably, a more precise class aligned with the intended query scope.
+
+#### Results
 ```json
-
-STATUS: 500
-Internal Server Error
-
-```
-#### Server (API)
-```bash
-curl --fail-with-body --silent --show-error \
-  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "SELECT ?normalizedLabel (COUNT(DISTINCT ?n) AS ?nodes) WHERE { ?n <http://www.wikidata.org/entity/P1476> ?label . BIND(LCASE(REPLACE(STR(?label), \"[^\\\\p{L}\\\\p{N}]+\", \"\")) AS ?normalizedLabel) } GROUP BY ?normalizedLabel HAVING (COUNT(DISTINCT ?n) > 1) ORDER BY DESC(?nodes) LIMIT 100",
-    "format": "json"
-  }'
-```
-
-##### Results:
-```json
-STATUS: 404
-404 page not found
-```
-
-
-### Test X2 - Type conflict check per entity
-
-Objective: detect nodes with unusually high class multiplicity (possible merge errors).
-
-#### Cypher
-```cypher
-MATCH (n)
-WITH n, size(labels(n)) AS typeCount
-WHERE typeCount > 3
-RETURN n, typeCount
-ORDER BY typeCount DESC
-LIMIT 100;
-```
-
-##### Cypher results (JSON)
-```json\nSTATUS: 404\n404 page not found\n```
-
-#### Platform (SPARQL)
-```sparql
-SELECT ?n (COUNT(DISTINCT ?type) AS ?typeCount)
-WHERE {
-  ?n a ?type .
-}
-GROUP BY ?n
-HAVING (COUNT(DISTINCT ?type) > 3)
-ORDER BY DESC(?typeCount)
-LIMIT 100
-```
-##### Results
-```json
-
-STATUS: 500
-Internal Server Error
-
-```
-#### Server (API)
-```bash
-curl --fail-with-body --silent --show-error \
-  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "SELECT ?n (COUNT(DISTINCT ?type) AS ?typeCount) WHERE { ?n a ?type . } GROUP BY ?n HAVING (COUNT(DISTINCT ?type) > 3) ORDER BY DESC(?typeCount) LIMIT 100",
-    "format": "json"
-  }'
-```
-
-##### Results:
-```json
-STATUS: 404
-404 page not found
-```
-
-
-# 2. Gender-aware and socio-economic status validation block
-
-Purpose: evaluate whether gender/sex and social-economic signals are present and usable across ingested sources, aligned with source metadata models (for example SIDBRINT `P21` sex/gender and `P106` occupation; Censura `genero_*` fields).
-
-### Test G1 - Sex/gender footprint (P21 and lexical variants)
-
-Objective: verify that sex/gender is explicitly represented and measurable in person-like entities.
-
-#### Cypher
-```cypher
-MATCH (p)
-WHERE any(lbl IN labels(p) WHERE lbl IN ["Person","Q5"])
-WITH p,
-     coalesce(
-       toString(p.P21),
-       toString(p.gender),
-       toString(p.genero),
-       toString(p.sexo),
-       toString(p.field_brigadista_genere),
-       toString(p.genero_editor),
-       toString(p.genero_importador),
-       toString(p.genero_lector),
-       toString(p.genero_proveedor_papel)
-     ) AS genderValue
-WHERE genderValue IS NOT NULL AND trim(genderValue) <> ""
-RETURN genderValue, count(DISTINCT p) AS persons
-ORDER BY persons DESC, genderValue;
-```
-
-##### Cypher results (JSON)
-```json
-{
-  "status": "error",
-  "errorType": "ExecutionBlocked",
-  "error": "Could not execute in this run",
-  "details": "Browser query editor returned stale element references repeatedly during automation."
-}
-```
-
-#### Cypher (Neo4j 5)
-```cypher
-MATCH (p)
-WHERE p:Person OR p:Q5
-WITH p,
-     coalesce(
-       toString(p.P21),
-       toString(p.gender),
-       toString(p.genero),
-       toString(p.sexo),
-       toString(p.field_brigadista_genere),
-       toString(p.genero_editor),
-       toString(p.genero_importador),
-       toString(p.genero_lector),
-       toString(p.genero_proveedor_papel)
-     ) AS genderValue
-WHERE genderValue IS NOT NULL AND trim(genderValue) <> ""
-RETURN genderValue, count(DISTINCT p) AS persons
-ORDER BY persons DESC, genderValue;
-```
-
-##### Cypher (Neo4j 5) results (JSON)
-```json
-{
-  "status": "error",
-  "errorType": "ExecutionBlocked",
-  "error": "Could not execute in this run",
-  "details": "Browser query editor returned stale element references repeatedly during automation."
-}
-```
-
-#### SPARQL
-```sparql
-SELECT ?genderValue (COUNT(DISTINCT ?p) AS ?persons)
-WHERE {
-  ?p ?prop ?genderRaw .
-  FILTER(
-    ?prop = <http://www.wikidata.org/prop/direct/P21>
-    || REGEX(STR(?prop), "gender|genero|g[eè]nere|sexo", "i")
-  )
-  BIND(LCASE(STR(?genderRaw)) AS ?genderValue)
-  FILTER(STRLEN(?genderValue) > 0)
-}
-GROUP BY ?genderValue
-ORDER BY DESC(?persons) ?genderValue
-```
-
-##### SPARQL results (JSON)
-```json
-{
-  "status": "error",
-  "errorType": "TimeoutError",
-  "error": "The read operation timed out",
-  "details": "Executed against https://ubxat.peninsula.co/cognitive/api/v1/sparql with provided credentials."
-}
-```
-
-#### Server (SPARQL via API)
-```bash
-curl --fail-with-body --silent --show-error \
-  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "SELECT ?genderValue (COUNT(DISTINCT ?p) AS ?persons) WHERE { ?p ?prop ?genderRaw . FILTER(?prop = <http://www.wikidata.org/prop/direct/P21> || REGEX(STR(?prop), \"gender|genero|g[eè]nere|sexo\", \"i\")) BIND(LCASE(STR(?genderRaw)) AS ?genderValue) FILTER(STRLEN(?genderValue) > 0) } GROUP BY ?genderValue ORDER BY DESC(?persons) ?genderValue",
-    "format": "json"
-  }'
-```
-
-##### Results:
-```json
-{
-  "status": "error",
-  "errorType": "MissingCredentials",
-  "error": "UBXAT_USER and/or UBXAT_PASSWORD not set in terminal environment",
-  "details": "Server API execution skipped."
-}
-```
-
-### Test G2 - Missing sex/gender coverage in person entities
-
-Objective: quantify person records lacking explicit gender/sex values (critical for bias-aware analysis).
-
-#### Cypher
-```cypher
-MATCH (p)
-WHERE any(lbl IN labels(p) WHERE lbl IN ["Person","Q5"])
-WITH count(DISTINCT p) AS totalPersons,
-     count(DISTINCT CASE
-       WHEN coalesce(
-         p.P21, p.gender, p.genero, p.sexo, p.field_brigadista_genere,
-         p.genero_editor, p.genero_importador, p.genero_lector, p.genero_proveedor_papel
-       ) IS NOT NULL THEN p END) AS withGender
-RETURN totalPersons, withGender, (totalPersons - withGender) AS missingGender;
-```
-
-##### Cypher results (JSON)
-```json
-{
-  "status": "error",
-  "errorType": "ExecutionBlocked",
-  "error": "Could not execute in this run",
-  "details": "Browser query editor returned stale element references repeatedly during automation."
-}
-```
-
-#### Cypher (Neo4j 5)
-```cypher
-MATCH (p)
-WHERE p:Person OR p:Q5
-WITH count(DISTINCT p) AS totalPersons,
-     count(DISTINCT CASE
-       WHEN coalesce(
-         p.P21, p.gender, p.genero, p.sexo, p.field_brigadista_genere,
-         p.genero_editor, p.genero_importador, p.genero_lector, p.genero_proveedor_papel
-       ) IS NOT NULL THEN p END) AS withGender
-RETURN totalPersons, withGender, (totalPersons - withGender) AS missingGender;
-```
-
-##### Cypher (Neo4j 5) results (JSON)
-```json
-{
-  "status": "error",
-  "errorType": "ExecutionBlocked",
-  "error": "Could not execute in this run",
-  "details": "Browser query editor returned stale element references repeatedly during automation."
-}
-```
-
-#### SPARQL
-```sparql
-SELECT
-  (COUNT(DISTINCT ?p) AS ?totalPersons)
-  (COUNT(DISTINCT ?pWithGender) AS ?withGender)
-  ((COUNT(DISTINCT ?p) - COUNT(DISTINCT ?pWithGender)) AS ?missingGender)
-WHERE {
-  ?p <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?personType .
-  FILTER(REGEX(STR(?personType), "Q5|Person", "i"))
-  OPTIONAL {
-    ?p ?gProp ?gVal .
-    FILTER(
-      ?gProp = <http://www.wikidata.org/prop/direct/P21>
-      || REGEX(STR(?gProp), "gender|genero|g[eè]nere|sexo", "i")
-    )
-    FILTER(STRLEN(STR(?gVal)) > 0)
-    BIND(?p AS ?pWithGender)
-  }
-}
-```
-
-##### SPARQL results (JSON)
-```json
-{
-  "status": "error",
-  "errorType": "ExecutionBlocked",
-  "error": "Could not execute in this run",
-  "details": "Browser query editor returned stale element references repeatedly during automation."
-}
-```
-
-#### Server (SPARQL via API)
-```bash
-curl --fail-with-body --silent --show-error \
-  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "SELECT (COUNT(DISTINCT ?p) AS ?totalPersons) (COUNT(DISTINCT ?pWithGender) AS ?withGender) ((COUNT(DISTINCT ?p) - COUNT(DISTINCT ?pWithGender)) AS ?missingGender) WHERE { ?p <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?personType . FILTER(REGEX(STR(?personType), \"Q5|Person\", \"i\")) OPTIONAL { ?p ?gProp ?gVal . FILTER(?gProp = <http://www.wikidata.org/prop/direct/P21> || REGEX(STR(?gProp), \"gender|genero|g[eè]nere|sexo\", \"i\")) FILTER(STRLEN(STR(?gVal)) > 0) BIND(?p AS ?pWithGender) } }",
-    "format": "json"
-  }'
-```
-
-##### Results:
-```json
-{
-  "status": "error",
-  "errorType": "MissingCredentials",
-  "error": "UBXAT_USER and/or UBXAT_PASSWORD not set in terminal environment",
-  "details": "Server API execution skipped."
-}
-```
-
-### Test G3 - Occupation/profession coverage by gender proxy
-
-Objective: detect whether social/economic proxy fields (occupation/profession, e.g. `P106`) are unevenly populated across gender groups.
-
-#### Cypher
-```cypher
-MATCH (p)
-WHERE any(lbl IN labels(p) WHERE lbl IN ["Person","Q5"])
-WITH p,
-     coalesce(toString(p.P21), toString(p.gender), toString(p.genero), toString(p.sexo), "unknown") AS genderGroup,
-     coalesce(
-       toString(p.P106),
-       toString(p.occupation),
-       toString(p.profession),
-       toString(p.profesion),
-       toString(p.oficio),
-       ""
-     ) AS occupationValue
-RETURN genderGroup,
-       count(DISTINCT p) AS persons,
-       count(DISTINCT CASE WHEN trim(occupationValue) <> "" THEN p END) AS withOccupation
-ORDER BY persons DESC, genderGroup;
-```
-
-##### Cypher results (JSON)
-```json
-{
-  "status": "error",
-  "errorType": "ExecutionBlocked",
-  "error": "Could not execute in this run",
-  "details": "Browser query editor returned stale element references repeatedly during automation."
-}
-```
-
-#### Cypher (Neo4j 5)
-```cypher
-MATCH (p)
-WHERE p:Person OR p:Q5
-WITH p,
-     coalesce(toString(p.P21), toString(p.gender), toString(p.genero), toString(p.sexo), "unknown") AS genderGroup,
-     coalesce(
-       toString(p.P106),
-       toString(p.occupation),
-       toString(p.profession),
-       toString(p.profesion),
-       toString(p.oficio),
-       ""
-     ) AS occupationValue
-RETURN genderGroup,
-       count(DISTINCT p) AS persons,
-       count(DISTINCT CASE WHEN trim(occupationValue) <> "" THEN p END) AS withOccupation
-ORDER BY persons DESC, genderGroup;
-```
-
-##### Cypher (Neo4j 5) results (JSON)
-```json
-{
-  "status": "error",
-  "errorType": "ExecutionBlocked",
-  "error": "Could not execute in this run",
-  "details": "Browser query editor returned stale element references repeatedly during automation."
-}
-```
-
-#### SPARQL
-```sparql
-SELECT ?genderGroup
-       (COUNT(DISTINCT ?p) AS ?persons)
-       (COUNT(DISTINCT ?pOcc) AS ?withOccupation)
-WHERE {
-  ?p <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?personType .
-  FILTER(REGEX(STR(?personType), "Q5|Person", "i"))
-
-  OPTIONAL {
-    ?p ?gProp ?gVal .
-    FILTER(
-      ?gProp = <http://www.wikidata.org/prop/direct/P21>
-      || REGEX(STR(?gProp), "gender|genero|g[eè]nere|sexo", "i")
-    )
-  }
-  BIND(COALESCE(LCASE(STR(?gVal)), "unknown") AS ?genderGroup)
-
-  OPTIONAL {
-    ?p ?oProp ?oVal .
-    FILTER(
-      ?oProp = <http://www.wikidata.org/prop/direct/P106>
-      || REGEX(STR(?oProp), "occupation|profession|profesion|oficio", "i")
-    )
-    FILTER(STRLEN(STR(?oVal)) > 0)
-    BIND(?p AS ?pOcc)
-  }
-}
-GROUP BY ?genderGroup
-ORDER BY DESC(?persons) ?genderGroup
-```
-
-##### SPARQL results (JSON)
-```json
-{
-  "status": "error",
-  "errorType": "ExecutionBlocked",
-  "error": "Could not execute in this run",
-  "details": "Browser query editor returned stale element references repeatedly during automation."
-}
-```
-
-#### Server (SPARQL via API)
-```bash
-curl --fail-with-body --silent --show-error \
-  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "SELECT ?genderGroup (COUNT(DISTINCT ?p) AS ?persons) (COUNT(DISTINCT ?pOcc) AS ?withOccupation) WHERE { ?p <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?personType . FILTER(REGEX(STR(?personType), \"Q5|Person\", \"i\")) OPTIONAL { ?p ?gProp ?gVal . FILTER(?gProp = <http://www.wikidata.org/prop/direct/P21> || REGEX(STR(?gProp), \"gender|genero|g[eè]nere|sexo\", \"i\")) } BIND(COALESCE(LCASE(STR(?gVal)), \"unknown\") AS ?genderGroup) OPTIONAL { ?p ?oProp ?oVal . FILTER(?oProp = <http://www.wikidata.org/prop/direct/P106> || REGEX(STR(?oProp), \"occupation|profession|profesion|oficio\", \"i\")) FILTER(STRLEN(STR(?oVal)) > 0) BIND(?p AS ?pOcc) } } GROUP BY ?genderGroup ORDER BY DESC(?persons) ?genderGroup",
-    "format": "json"
-  }'
-```
-
-##### Results:
-```json
-{
-  "status": "error",
-  "errorType": "MissingCredentials",
-  "error": "UBXAT_USER and/or UBXAT_PASSWORD not set in terminal environment",
-  "details": "Server API execution skipped."
-}
-```
-
-### Test G4 - Social/economic-status vocabulary audit
-
-Objective: inventory properties/values related to social or economic status to check whether this dimension is represented in the integrated graph.
-
-#### Cypher
-```cypher
-MATCH (n)
-UNWIND keys(n) AS k
-WITH n, k, toString(n[k]) AS v
-WHERE toLower(k) CONTAINS "social"
-   OR toLower(k) CONTAINS "economic"
-   OR toLower(k) CONTAINS "socio"
-   OR toLower(k) CONTAINS "clase"
-   OR toLower(k) CONTAINS "estatus"
-   OR toLower(k) CONTAINS "ocup"
-   OR toLower(k) CONTAINS "profes"
-RETURN k AS propertyName, count(DISTINCT n) AS nodes, count(*) AS values
-ORDER BY values DESC, propertyName;
-```
-
-##### Cypher results (JSON)
-```json
-{
-  "status": "error",
-  "errorType": "ExecutionBlocked",
-  "error": "Could not execute in this run",
-  "details": "Browser query editor returned stale element references repeatedly during automation."
-}
-```
-
-#### Cypher (Neo4j 5)
-```cypher
-MATCH (n)
-UNWIND keys(n) AS k
-WITH n, k
-WHERE toLower(k) CONTAINS "social"
-   OR toLower(k) CONTAINS "economic"
-   OR toLower(k) CONTAINS "socio"
-   OR toLower(k) CONTAINS "clase"
-   OR toLower(k) CONTAINS "estatus"
-   OR toLower(k) CONTAINS "ocup"
-   OR toLower(k) CONTAINS "profes"
-RETURN k AS propertyName, count(DISTINCT n) AS nodes, count(*) AS values
-ORDER BY values DESC, propertyName;
-```
-
-##### Cypher (Neo4j 5) results (JSON)
-```json
-{
-  "status": "error",
-  "errorType": "ExecutionBlocked",
-  "error": "Could not execute in this run",
-  "details": "Browser query editor returned stale element references repeatedly during automation."
-}
-```
-
-#### SPARQL
-```sparql
-SELECT ?propertyName (COUNT(DISTINCT ?n) AS ?nodes) (COUNT(*) AS ?values)
-WHERE {
-  ?n ?p ?v .
-  BIND(LCASE(STR(?p)) AS ?propertyName)
-  FILTER(
-    CONTAINS(?propertyName, "social")
-    || CONTAINS(?propertyName, "economic")
-    || CONTAINS(?propertyName, "socio")
-    || CONTAINS(?propertyName, "clase")
-    || CONTAINS(?propertyName, "estatus")
-    || CONTAINS(?propertyName, "ocup")
-    || CONTAINS(?propertyName, "profes")
-    || CONTAINS(?propertyName, "prop/direct/p106")
-  )
-}
-GROUP BY ?propertyName
-ORDER BY DESC(?values) ?propertyName
-```
-
-##### SPARQL results (JSON)
-```json
-{
-  "status": "error",
-  "errorType": "ExecutionBlocked",
-  "error": "Could not execute in this run",
-  "details": "Browser query editor returned stale element references repeatedly during automation."
-}
-```
-
-#### Server (SPARQL via API)
-```bash
-curl --fail-with-body --silent --show-error \
-  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "SELECT ?propertyName (COUNT(DISTINCT ?n) AS ?nodes) (COUNT(*) AS ?values) WHERE { ?n ?p ?v . BIND(LCASE(STR(?p)) AS ?propertyName) FILTER(CONTAINS(?propertyName, \"social\") || CONTAINS(?propertyName, \"economic\") || CONTAINS(?propertyName, \"socio\") || CONTAINS(?propertyName, \"clase\") || CONTAINS(?propertyName, \"estatus\") || CONTAINS(?propertyName, \"ocup\") || CONTAINS(?propertyName, \"profes\") || CONTAINS(?propertyName, \"prop/direct/p106\")) } GROUP BY ?propertyName ORDER BY DESC(?values) ?propertyName",
-    "format": "json"
-  }'
-```
-
-##### Results:
-```json
-{
-  "status": "error",
-  "errorType": "MissingCredentials",
-  "error": "UBXAT_USER and/or UBXAT_PASSWORD not set in terminal environment",
-  "details": "Server API execution skipped."
-}
-```
-
-
-# 3. Types of SPARQL search:
-
-> Note: the SPARQL examples below assume an RDF view of the graph. `rdf:type` is standard; `ex:` is a placeholder namespace and should be replaced with the real ontology/predicate IRIs before running.
-
-## 1. SELECT queries
-
-#### 1. Basic triple patterns: ?subject ?predicate ?object
-
-Cypher equivalent: match (subject)-[r]->(object) and return subject id, relationship type, object id.
-Objective: retrieve the minimal graph statement unit for structural inspection and downstream sampling.
-
-##### Cypher
-```cypher
-MATCH (subject)-[r]->(object)
-RETURN id(subject) AS subject, type(r) AS predicate, id(object) AS object;
-```
-
-```Json
-json\n{"results":[{"subject":2,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":2,"predicate":"DOCUMENTED_IN","object":5},{"subject":3,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":3,"predicate":"DOCUMENTED_IN","object":6},{"subject":4,"predicate":"PARTICIPATED_IN","object":1119},{"subject":4,"predicate":"MEMBER_OF","object":1135},{"subject":4,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":4,"predicate":"DOCUMENTED_IN","object":7},{"subject":8,"predicate":"MEMBER_OF","object":1166},{"subject":8,"predicate":"DOCUMENTED_IN","object":9},{"subject":10,"predicate":"MEMBER_OF","object":11},{"subject":10,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":10,"predicate":"DOCUMENTED_IN","object":12},{"subject":13,"predicate":"MEMBER_OF","object":14},{"subject":13,"predicate":"DOCUMENTED_IN","object":15},{"subject":16,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1664},{"subject":16,"predicate":"DOCUMENTED_IN","object":17},{"subject":18,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1115},{"subject":18,"predicate":"DOCUMENTED_IN","object":19},{"subject":20,"predicate":"DOCUMENTED_IN","object":21},{"subject":22,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1206},{"subject":22,"predicate":"DOCUMENTED_IN","object":25},{"subject":23,"predicate":"PARTICIPATED_IN","object":1119},{"subject":23,"predicate":"MEMBER_OF","object":1292},{"subject":23,"predicate":"TREATED_AT","object":1378},{"subject":23,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1123},{"subject":23,"predicate":"DOCUMENTED_IN","object":26},{"subject":24,"predicate":"PARTICIPATED_IN","object":1119},{"subject":24,"predicate":"MEMBER_OF","object":1292},{"subject":24,"predicate":"DOCUMENTED_IN","object":27},{"subject":28,"predicate":"PARTICIPATED_IN","object":1132},{"subject":28,"predicate":"COUNTRY_OF_CITIZENSHIP","object":321},{"subject":28,"predicate":"DOCUMENTED_IN","object":29},{"subject":30,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":30,"predicate":"DOCUMENTED_IN","object":31},{"subject":30,"predicate":"AUTHORED_BY","object":1882},{"subject":32,"predicate":"COUNTRY_OF_CITIZENSHIP","object":321},{"subject":32,"predicate":"DOCUMENTED_IN","object":33},{"subject":32,"predicate":"AUTHORED_BY","object":1882},{"subject":34,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1242},{"subject":34,"predicate":"DOCUMENTED_IN","object":37},{"subject":35,"predicate":"MEMBER_OF","object":1543},{"subject":35,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1458},{"subject":35,"predicate":"DOCUMENTED_IN","object":38},{"subject":36,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1458},{"subject":36,"predicate":"DOCUMENTED_IN","object":39},{"subject":40,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":41,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1242},{"subject":42,"predicate":"PARTICIPATED_IN","object":1564},{"subject":43,"predicate":"MEMBER_OF","object":1595},{"subject":43,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1385},{"subject":44,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":45,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1216},{"subject":46,"predicate":"MEMBER_OF","object":48},{"subject":46,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1115},{"subject":46,"predicate":"DOCUMENTED_IN","object":47},{"subject":49,"predicate":"DOCUMENTED_IN","object":50},{"subject":51,"predicate":"MEMBER_OF","object":1166},{"subject":51,"predicate":"DOCUMENTED_IN","object":52},{"subject":53,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1148},{"subject":53,"predicate":"DOCUMENTED_IN","object":56},{"subject":54,"predicate":"PARTICIPATED_IN","object":1119},{"subject":54,"predicate":"MEMBER_OF","object":1135},{"subject":54,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":54,"predicate":"DOCUMENTED_IN","object":57},{"subject":54,"predicate":"AUTHORED_BY","object":1713},{"subject":55,"predicate":"PARTICIPATED_IN","object":1119},{"subject":55,"predicate":"MEMBER_OF","object":1135},{"subject":55,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":55,"predicate":"DOCUMENTED_IN","object":58},{"subject":55,"predicate":"AUTHORED_BY","object":1713},{"subject":59,"predicate":"MEMBER_OF","object":1543},{"subject":59,"predicate":"DOCUMENTED_IN","object":60},{"subject":61,"predicate":"MEMBER_OF","object":1120},{"subject":61,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1115},{"subject":61,"predicate":"DOCUMENTED_IN","object":62},{"subject":63,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1156},{"subject":63,"predicate":"DOCUMENTED_IN","object":64},{"subject":65,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1216},{"subject":65,"predicate":"DOCUMENTED_IN","object":68},{"subject":66,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1216},{"subject":66,"predicate":"DOCUMENTED_IN","object":69},{"subject":67,"predicate":"DOCUMENTED_IN","object":70},{"subject":72,"predicate":"MEMBER_OF","object":1166},{"subject":72,"predicate":"DOCUMENTED_IN","object":73},{"subject":74,"predicate":"MEMBER_OF","ob\n... [truncated]\n
-```
-
-##### SPARQL
-```sparql
-SELECT ?subject ?predicate ?object
-WHERE {
-  ?subject ?predicate ?object .
-}
-```
-
-```Json
-json\n{"results":[{"subject":"Bernard","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Bernard","predicate":"DOCUMENTED_IN","object":"43378"},{"subject":"Bernard, Aimé Marcel","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Bernard, Aimé Marcel","predicate":"DOCUMENTED_IN","object":"43628"},{"subject":"Bernard, Albert","predicate":"PARTICIPATED_IN","object":"Batalla de Brunete"},{"subject":"Bernard, Albert","predicate":"MEMBER_OF","object":"Brigada XIV | La Marseillaise | Dumont"},{"subject":"Bernard, Albert","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Bernard, Albert","predicate":"DOCUMENTED_IN","object":"72161"},{"subject":"Berncman, Abram","predicate":"MEMBER_OF","object":"Brigada XIII | Dombrowski | Dąbrowski"},{"subject":"Berncman, Abram","predicate":"DOCUMENTED_IN","object":"54923"},{"subject":"Berne, César","predicate":"MEMBER_OF","object":"Brigada de Tancs"},{"subject":"Berne, César","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Berne, César","predicate":"DOCUMENTED_IN","object":"89333"},{"subject":"Bernegan, Willi","predicate":"MEMBER_OF","object":"35 Divisió"},{"subject":"Bernegan, Willi","predicate":"DOCUMENTED_IN","object":"89334"},{"subject":"Bernstein, Izuck","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Romania"},{"subject":"Bernstein, Izuck","predicate":"DOCUMENTED_IN","object":"85487"},{"subject":"Bernstein, Paul","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Estats Units d'Amèrica"},{"subject":"Bernstein, Paul","predicate":"DOCUMENTED_IN","object":"88242"},{"subject":"Bernstein, Willard","predicate":"DOCUMENTED_IN","object":"89339"},{"subject":"Berro, Saturnino","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Cuba"},{"subject":"Berro, Saturnino","predicate":"DOCUMENTED_IN","object":"16358"},{"subject":"Berrocal Antúnez, Domingo","predicate":"PARTICIPATED_IN","object":"Batalla de Brunete"},{"subject":"Berrocal Antúnez, Domingo","predicate":"MEMBER_OF","object":"Brigada XI | Thaelmann | Hans Beimler"},{"subject":"Berrocal Antúnez, Domingo","predicate":"TREATED_AT","object":"Hospitals de Tarancón"},{"subject":"Berrocal Antúnez, Domingo","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Espanya"},{"subject":"Berrocal Antúnez, Domingo","predicate":"DOCUMENTED_IN","object":"72182"},{"subject":"Berrocal, Álvaro","predicate":"PARTICIPATED_IN","object":"Batalla de Brunete"},{"subject":"Berrocal, Álvaro","predicate":"MEMBER_OF","object":"Brigada XI | Thaelmann | Hans Beimler"},{"subject":"Berrocal, Álvaro","predicate":"DOCUMENTED_IN","object":"72180"},{"subject":"Berti, Mario","predicate":"PARTICIPATED_IN","object":"Front d'Aragó"},{"subject":"Berti, Mario","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Desconegut"},{"subject":"Berti, Mario","predicate":"DOCUMENTED_IN","object":"88234"},{"subject":"Bertin, Georges","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Bertin, Georges","predicate":"DOCUMENTED_IN","object":"89343"},{"subject":"Bertin, Georges","predicate":"AUTHORED_BY","object":"Josep Robert Reig Miro"},{"subject":"Bertin, Samilier","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Desconegut"},{"subject":"Bertin, Samilier","predicate":"DOCUMENTED_IN","object":"89344"},{"subject":"Bertin, Samilier","predicate":"AUTHORED_BY","object":"Josep Robert Reig Miro"},{"subject":"Berzins, Jan Antonovich","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Unió Soviètica"},{"subject":"Berzins, Jan Antonovich","predicate":"DOCUMENTED_IN","object":"1829"},{"subject":"Bescos De Siboni, María Del Pilar","predicate":"MEMBER_OF","object":"Cos de Sanitat"},{"subject":"Bescos De Siboni, María Del Pilar","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Argentina"},{"subject":"Bescos De Siboni, María Del Pilar","predicate":"DOCUMENTED_IN","object":"88007"},{"subject":"Besmertnaia, Sonia","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Argentina"},{"subject":"Besmertnaia, Sonia","predicate":"DOCUMENTED_IN","object":"24047"},{"subject":"Bessières","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Bessmertnaia, Sofía","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Unió Soviètica"},{"subject":"Besson, Pierre","predicate":"PARTICIPATED_IN","object":"Front del Nord"},{"subject":"Beugnier, Alfred","predicate":"MEMBER_OF","object":"Parti Communiste de Belgique (PCB) (Partit Comunista de Bèlgica)"},{"subject":"Beugnier, Alfred","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Bèlgica"},{"subject":"Beure, Joseph","predicate":"COUNTRY_OF_CITIZENSHIP","object":"França"},{"subject":"Beurhler, Reinhold","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Alemanya"},{"subject":"Bhoier, Arwis","predicate":"MEMBER_OF","object":"Brigada XV"},{"subject":"Bhoier, Arwis","predicate":"COUNTRY_OF_CITIZENSHIP","object":"Estats Units d'Amèrica"},{"subject":"Bhoier, Arwis","predicate":"DOCUMENTED_IN","object":"91309"},{"subject":"Bhorteher, Hermann","predicate":"DOCUMENTED_IN","object":"91310"},{"subject":"Bialowas, Hersh","predicate":"MEMB\n... [truncated]\n
-```
-
-##### Server (SPARQL via API)
-```bash
-curl --fail-with-body --silent --show-error \
-  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "SELECT ?subject ?predicate ?object WHERE { ?subject ?predicate ?object . }",
-    "format": "json"
-  }'
-```
-
-###### Results:
-```json
-STATUS: 500
-Internal Server Error
-```
-
-
-## 2. FILTER clauses: basic string and numeric comparisons
-
-**String:** nodes whose label (name/title/text) contains a substring (case-insensitive).
-Objective: test semantic filtering capacity and verify retrieval precision for targeted terms.
-
-##### Cypher
-```cypher
-MATCH (n)
-WHERE toLower(coalesce(n.name, n.title, n.text, "")) CONTAINS "brigadista"
-RETURN id(n) AS subject, labels(n) AS labels, coalesce(n.name, n.title, n.text) AS label
-LIMIT 50;
-```
-
-```json\n{"results":[],"columns":[]}\n```
-
-##### SPARQL
-```sparql
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX dc: <http://purl.org/dc/terms/>
-PREFIX schema: <https://schema.org/>
-
-SELECT ?subject ?label
-WHERE {
-  ?subject ?predicate ?label .
-  FILTER(?predicate IN (rdfs:label, dc:title, schema:name))
-  FILTER(CONTAINS(LCASE(STR(?label)), "brigadista"))
-}
-LIMIT 50
-```
-###### Results
-```json
-STATUS: 500
-Internal Server Error
-```
-
-##### Server (SPARQL via API)
-```bash
-curl --fail-with-body --silent --show-error \
-  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX dc: <http://purl.org/dc/terms/> PREFIX schema: <https://schema.org/> SELECT ?subject ?label WHERE { ?subject ?predicate ?label . FILTER(?predicate IN (rdfs:label, dc:title, schema:name)) FILTER(CONTAINS(LCASE(STR(?label)), \"brigadista\")) } LIMIT 50",
-    "format": "json"
-  }'
-```
-
-###### Results:
-```json
-STATUS: 500
-Internal Server Error
-```
-
-
-## 3. LIMIT / OFFSET: result pagination
-
-Objective: test stable pagination and deterministic ordering for reproducible batches and UI navigation.
-
-##### Cypher
-```cypher
-MATCH (subject)-[r]->(object)
-RETURN id(subject) AS subject, type(r) AS predicate, id(object) AS object
-ORDER BY subject, predicate, object
-SKIP 0
-LIMIT 25;
-```
-
-###### Results:
-```Json
-json\n{"results":[{"subject":2,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":2,"predicate":"DOCUMENTED_IN","object":5},{"subject":3,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":3,"predicate":"DOCUMENTED_IN","object":6},{"subject":4,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":4,"predicate":"DOCUMENTED_IN","object":7},{"subject":4,"predicate":"MEMBER_OF","object":1135},{"subject":4,"predicate":"PARTICIPATED_IN","object":1119},{"subject":8,"predicate":"DOCUMENTED_IN","object":9},{"subject":8,"predicate":"MEMBER_OF","object":1166},{"subject":10,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1134},{"subject":10,"predicate":"DOCUMENTED_IN","object":12},{"subject":10,"predicate":"MEMBER_OF","object":11},{"subject":13,"predicate":"DOCUMENTED_IN","object":15},{"subject":13,"predicate":"MEMBER_OF","object":14},{"subject":16,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1664},{"subject":16,"predicate":"DOCUMENTED_IN","object":17},{"subject":18,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1115},{"subject":18,"predicate":"DOCUMENTED_IN","object":19},{"subject":20,"predicate":"DOCUMENTED_IN","object":21},{"subject":22,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1206},{"subject":22,"predicate":"DOCUMENTED_IN","object":25},{"subject":23,"predicate":"COUNTRY_OF_CITIZENSHIP","object":1123},{"subject":23,"predicate":"DOCUMENTED_IN","object":26},{"subject":23,"predicate":"MEMBER_OF","object":1292}],"columns":["subject","predicate","object"]}\n
-```
-
-##### SPARQL
-```sparql
-SELECT ?subject ?predicate ?object
-WHERE {
-  ?subject ?predicate ?object .
-}
-ORDER BY ?subject ?predicate ?object
-LIMIT 25
-OFFSET 0
-```
-###### Results:
-```json\nSTATUS: 500\nInternal Server Error\n```
-
-##### Server (SPARQL via API)
-```bash
-curl --fail-with-body --silent --show-error \
-  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "SELECT ?subject ?predicate ?object WHERE { ?subject ?predicate ?object . } ORDER BY ?subject ?predicate ?object LIMIT 25 OFFSET 0",
-    "format": "json"
-  }'
-```
-
-###### Results:
-```json
-STATUS: 404
-404 page not found
-```
-
-
-## 4. ASK queries
-
-#### 1. Boolean: check for pattern existence
-
-Returns one row with a boolean: does the pattern exist?
-Objective: validate fast existence checks for conditional workflows and rule triggers.
-
-##### Cypher
-```cypher
-MATCH (subject)-[r]->(object)
-WITH subject, r, object
-LIMIT 1
-RETURN count(*) > 0 AS result;
-```
-###### Results
-```json
-STATUS: 500
-Internal Server Error
-```
-
-##### SPARQL
-```sparql
-ASK
-WHERE {
-  ?subject ?predicate ?object .
-}
-```
-###### Results
-```json
-STATUS: 500
-Internal Server Error
-```
-
-##### Server (SPARQL via API)
-```bash
-curl --fail-with-body --silent --show-error \
-  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "ASK WHERE { ?subject ?predicate ?object . }",
-    "format": "json"
-  }'
-```
-
-###### Results:
-```json
-STATUS: 404
-404 page not found
-```
-
-
-#### 2. Basic ASK: e.g. “exists any MassGrave?”
-
-Objective: verify class-level existence checks for domain entities used in monitoring and alerts.
-
-##### Cypher
-```cypher
-MATCH (n:MassGrave)
-WITH n
-LIMIT 1
-RETURN count(*) > 0 AS result;
-```
-###### Results
-```json
-{"results":[{"result":true}],"columns":["result"]}
-```
-
-##### SPARQL
-```sparql
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX ex: <https://example.org/ns#>
-
-ASK
-WHERE {
-  ?n rdf:type ex:MassGrave .
-}
-```
-###### Results
-```json
-STATUS: 500
-Internal Server Error
-```
-
-##### Server (SPARQL via API)
-```bash
-curl --fail-with-body --silent --show-error \
-  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX ex: <https://example.org/ns#> ASK WHERE { ?n rdf:type ex:MassGrave . }",
-    "format": "json"
-  }'
-```
-
-###### Results:
-```json
-STATUS: 404
-404 page not found
-```
-
-
-## 5. COUNT queries (extended)
-
-Objective: validate aggregate consistency for core graph magnitudes and support monitoring dashboards with reproducible totals.
-
-#### 1. Custom COUNT syntax: COUNT(?variable)
-
-Cypher equivalent: `count(n)` or `count(*)` for the bound variable / pattern.
-
-**Count all nodes:**
-
-Objective: compute entity cardinality for baseline comparisons between dataset versions.
-
-##### Cypher
-```cypher
-MATCH (n)
-RETURN count(n) AS count;
-```
-
-###### Results
-```json\nSTATUS: 404\n404 page not found\n```
-##### SPARQL
-```sparql
-SELECT (COUNT(DISTINCT ?n) AS ?count)
-WHERE {
+[
   {
-    ?n ?p ?o .
-  }
-  UNION
+    "node": "A Tocar Del Cementiri De Sant Romà D'abella",
+    "label": "A Tocar Del Cementiri De Sant Romà D'abella",
+    "location": "Spain"
+  },
   {
-    ?s ?p ?n .
-  }
-}
-```
-###### Results
-```json
-STATUS: 500
-Internal Server Error
-```
-
-##### Server (SPARQL via API)
-```bash
-curl --fail-with-body --silent --show-error \
-  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "SELECT (COUNT(DISTINCT ?n) AS ?count) WHERE { { ?n ?p ?o . } UNION { ?s ?p ?n . } }",
-    "format": "json"
-  }'
-```
-
-###### Results:
-```json
-STATUS: 404
-404 page not found
-```
-
-**Count relationships (triples):**
-
-Objective: compute assertion cardinality and detect unexpected relation inflation or loss.
-
-##### Cypher
-```cypher
-MATCH ()-[r]->()
-RETURN count(r) AS count;
-```
-###### Results
-```json
-{"results":[{"count":4482}],"columns":["count"]}
-```
-
-##### SPARQL
-```sparql
-SELECT (COUNT(*) AS ?count)
-WHERE {
-  ?subject ?predicate ?object .
-}
-```
-###### Results
-```json
-STATUS: 500
-Internal Server Error
-```
-
-##### Server (SPARQL via API)
-```bash
-curl --fail-with-body --silent --show-error \
-  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "SELECT (COUNT(*) AS ?count) WHERE { ?subject ?predicate ?object . }",
-    "format": "json"
-  }'
-```
-
-###### Results:
-```json
-STATUS: 404
-404 page not found
-```
-
-## 6. CONSTRUCT
-
-Return a graph-shaped payload (equivalent to SPARQL CONSTRUCT): nodes + relationships as collections.
-Objective: verify graph reconstruction/export behavior for downstream visualization, interchange, or pipeline reuse.
-
-##### Cypher
-```cypher
-CALL {
-  MATCH (n)
-  RETURN collect({ id: id(n), labels: labels(n), props: properties(n) }) AS nodes
-}
-CALL {
-  MATCH (source)-[r]->(target)
-  RETURN collect({ sourceId: id(source), targetId: id(target), type: type(r), props: properties(r) }) AS relationships
-}
-RETURN nodes, relationships;
-```
-
-###### Results
-```json\nSTATUS: 404\n404 page not found\n```
-
-##### SPARQL
-```sparql
-CONSTRUCT {
-  ?subject ?predicate ?object .
-}
-WHERE {
-  ?subject ?predicate ?object .
-}
-```
-###### Results
-```json
-STATUS: 500
-Internal Server Error
-```
-
-##### Server (SPARQL via API)
-```bash
-curl --fail-with-body --silent --show-error \
-  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "CONSTRUCT { ?subject ?predicate ?object . } WHERE { ?subject ?predicate ?object . }",
-    "format": "json"
-  }'
-```
-
-###### Results:
-```json
-STATUS: 404
-404 page not found
-```
-
-
-## 7. DESCRIBE
-
-Describe one node by id: its properties and outgoing/incoming relationships (and neighbour ids).
-Objective: validate entity-centric inspection and provenance-style drill-down for debugging and curation workflows.
-
-##### Cypher
-```cypher
-MATCH (n)
-WHERE id(n) = 0
-OPTIONAL MATCH (n)-[r]->(m)
-RETURN id(n) AS id, labels(n) AS labels, properties(n) AS props, collect({ type: type(r), targetId: id(m) }) AS outRels;
-```
-###### Results
-```json
-{"results":[{"id":0,"labels":["Document"],"props":{"name":"72148","_normalized_name":"72148"},"outRels":[{"targetId":null,"type":null}]}],"columns":["id","labels","props","outRels"]}
-```
-
-##### SPARQL
-```sparql
-DESCRIBE ?n
-WHERE {
-  VALUES ?n { <https://example.org/resource/0> }
-}
-```
-###### Results
-```json\nSTATUS: 404\n404 page not found\n```
-
-##### Server (SPARQL via API)
-```bash
-curl --fail-with-body --silent --show-error \
-  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "DESCRIBE ?n WHERE { VALUES ?n { <https://example.org/resource/0> } }",
-    "format": "json"
-  }'
-```
-
-###### Results:
-```json
-STATUS: 404
-404 page not found
-```
-
-## 8. FILTER
-
-Restrict by string (e.g. label contains "brigadista") or by numeric range (e.g. id in range).
-
-##### Cypher
-```cypher
-MATCH (n)
-WHERE toLower(coalesce(n.name, n.title, n.text, "")) CONTAINS "brigadista"
-RETURN id(n) AS subject, labels(n) AS labels, coalesce(n.name, n.title, n.text) AS label
-LIMIT 50;
-```
-
-###### Results
-```json\nSTATUS: 404\n404 page not found\n```
-
-##### SPARQL
-```sparql
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-PREFIX dc: <http://purl.org/dc/terms/>
-PREFIX schema: <https://schema.org/>
-
-SELECT ?subject ?label
-WHERE {
-  ?subject ?predicate ?label .
-  FILTER(?predicate IN (rdfs:label, dc:title, schema:name))
-  FILTER(CONTAINS(LCASE(STR(?label)), "brigadista"))
-}
-LIMIT 50
-```
-###### Results
-```json
-STATUS: 500
-Internal Server Error
-```
-
-##### Server (SPARQL via API)
-```bash
-curl --fail-with-body --silent --show-error \
-  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX dc: <http://purl.org/dc/terms/> PREFIX schema: <https://schema.org/> SELECT ?subject ?label WHERE { ?subject ?predicate ?label . FILTER(?predicate IN (rdfs:label, dc:title, schema:name)) FILTER(CONTAINS(LCASE(STR(?label)), \"brigadista\")) } LIMIT 50",
-    "format": "json"
-  }'
-```
-
-###### Results:
-```json
-STATUS: 404
-404 page not found
-```
-
-
-## 9. ORDER BY
-
-Sort results (e.g. by subject, then predicate, then object) and paginate with SKIP/LIMIT.
-Objective: ensure deterministic ordering so repeated runs return stable sequences for review and auditing.
-
-##### Cypher
-```cypher
-MATCH (subject)-[r]->(object)
-RETURN id(subject) AS subject, type(r) AS predicate, id(object) AS object
-ORDER BY subject, predicate, object
-SKIP 0
-LIMIT 25;
-```
-
-###### Results
-```json\nSTATUS: 404\n404 page not found\n```
-
-##### SPARQL
-```sparql
-SELECT ?subject ?predicate ?object
-WHERE {
-  ?subject ?predicate ?object .
-}
-ORDER BY ?subject ?predicate ?object
-LIMIT 25
-OFFSET 0
-```
-
-###### Results
-```json\nSTATUS: 404\n404 page not found\n```
-
-##### Server (SPARQL via API)
-```bash
-curl --fail-with-body --silent --show-error \
-  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "SELECT ?subject ?predicate ?object WHERE { ?subject ?predicate ?object . } ORDER BY ?subject ?predicate ?object LIMIT 25 OFFSET 0",
-    "format": "json"
-  }'
-```
-
-###### Results:
-```json
-STATUS: 404
-404 page not found
-```
-
-## GROUP BY
-
-Group by node label and count nodes per type (no explicit GROUP BY; use WITH + aggregation).
-Objective: profile class distribution and detect imbalance across entity types.
-
-##### Cypher
-```cypher
-MATCH (n)
-UNWIND labels(n) AS type
-RETURN type, count(n) AS count
-ORDER BY count DESC
-LIMIT 20;
-```
-
-###### Results
-```json\nSTATUS: 404\n404 page not found\n```
-
-##### SPARQL
-```sparql
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-
-SELECT ?type (COUNT(DISTINCT ?n) AS ?count)
-WHERE {
-  ?n rdf:type ?type .
-}
-GROUP BY ?type
-ORDER BY DESC(?count)
-LIMIT 20
-```
-
-###### Results
-```json\nSTATUS: 404\n404 page not found\n```
-
-##### Server (SPARQL via API)
-```bash
-curl --fail-with-body --silent --show-error \
-  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> SELECT ?type (COUNT(DISTINCT ?n) AS ?count) WHERE { ?n rdf:type ?type . } GROUP BY ?type ORDER BY DESC(?count) LIMIT 20",
-    "format": "json"
-  }'
-```
-
-###### Results:
-```json
-STATUS: 404
-404 page not found
-```
-
-## 10. AGGREGATIONS
-
-Count nodes, count relationships, or both in one response.
-Objective: validate multi-metric aggregation in a single query to reduce API calls and keep metrics synchronized.
-
-##### Cypher
-```cypher
-MATCH (n)
-WITH count(n) AS nodeCount
-MATCH ()-[r]->()
-WITH nodeCount, count(r) AS relCount
-RETURN nodeCount, relCount;
-```
-###### Results
-```json
-STATUS: 500
-Internal Server Error
-```
-
-##### SPARQL
-```sparql
-SELECT ?nodeCount ?relCount
-WHERE {
+    "node": "A Tocar Del Cementiri De Sant Romà D'abella",
+    "label": "A Tocar Del Cementiri De Sant Romà D'abella",
+    "location": "Lleida"
+  },
   {
-    SELECT (COUNT(DISTINCT ?n) AS ?nodeCount)
-    WHERE {
-      { ?n ?p1 ?o1 . }
-      UNION
-      { ?s1 ?p1 ?n . }
-    }
-  }
+    "node": "A Tocar Del Cementiri De Sant Romà D'abella",
+    "label": "A Tocar Del Cementiri De Sant Romà D'abella",
+    "location": "Sant Romà d'Abella"
+  },
   {
-    SELECT (COUNT(*) AS ?relCount)
-    WHERE {
-      ?s2 ?p2 ?o2 .
-    }
+    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "location": "Catalunya"
+  },
+  {
+    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "location": "Spain"
+  },
+  {
+    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "location": "Barcelona"
+  },
+  {
+    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "location": "Sant Feliu de Llobregat"
+  },
+  {
+    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "location": "Baix Llobregat"
+  },
+  {
+    "node": "Aljub Al Soleràs",
+    "label": "Aljub Al Soleràs",
+    "location": "Spain"
+  },
+  {
+    "node": "Aljub Al Soleràs",
+    "label": "Aljub Al Soleràs",
+    "location": "Lleida"
+  },
+  {
+    "node": "Aljub Al Soleràs",
+    "label": "Aljub Al Soleràs",
+    "location": "El Soleràs"
+  },
+  {
+    "node": "Antic Camí De Llanera",
+    "label": "Antic Camí De Llanera",
+    "location": "Llobera"
+  },
+  {
+    "node": "Aqüeducte del Collet",
+    "label": "Aqüeducte del Collet",
+    "location": "Barcelona"
+  },
+  {
+    "node": "Aqüeducte del Collet",
+    "label": "Aqüeducte del Collet",
+    "location": "Guardiola de Berguedà"
+  },
+  {
+    "node": "Aulivar Del Civit",
+    "label": "Aulivar Del Civit",
+    "location": "Spain"
+  },
+  {
+    "node": "Aulivar Del Civit",
+    "label": "Aulivar Del Civit",
+    "location": "Lleida"
+  },
+  {
+    "node": "Aulivar Del Civit",
+    "label": "Aulivar Del Civit",
+    "location": "El Cogul"
+  },
+  {
+    "node": "Aulivarets De Vespella De Gaià",
+    "label": "Aulivarets De Vespella De Gaià",
+    "location": "Spain"
+  },
+  {
+    "node": "Aulivarets De Vespella De Gaià",
+    "label": "Aulivarets De Vespella De Gaià",
+    "location": "Vespella de Gaià"
+  },
+  {
+    "node": "Aumaec",
+    "label": "Aumaec",
+    "location": null
+  },
+  {
+    "node": "Avenc De La Figuerota. Puig Francàs",
+    "label": "Avenc De La Figuerota. Puig Francàs",
+    "location": "Tarragona"
+  },
+  {
+    "node": "Avenc De La Figuerota. Puig Francàs",
+    "label": "Avenc De La Figuerota. Puig Francàs",
+    "location": "Spain"
+  },
+  {
+    "node": "Avenc De La Figuerota. Puig Francàs",
+    "label": "Avenc De La Figuerota. Puig Francàs",
+    "location": "El Montmell"
+  },
+  {
+    "node": "Bancal Del Panser",
+    "label": "Bancal Del Panser",
+    "location": "Spain"
+  },
+  {
+    "node": "Bancal Del Panser",
+    "label": "Bancal Del Panser",
+    "location": "Lleida"
+  },
+  {
+    "node": "Bancal Del Panser",
+    "label": "Bancal Del Panser",
+    "location": "El Cogul"
+  },
+  {
+    "node": "Bancal de l'Anton",
+    "label": "Bancal de l'Anton",
+    "location": "Spain"
+  },
+  {
+    "node": "Bancal de l'Anton",
+    "label": "Bancal de l'Anton",
+    "location": "Lleida"
+  },
+  {
+    "node": "Bancal de l'Anton",
+    "label": "Bancal de l'Anton",
+    "location": "El Cogul"
+  },
+  {
+    "node": "Banyadé: Solana Del Pas Del Pi",
+    "label": "Banyadé: Solana Del Pas Del Pi",
+    "location": "Spain"
   }
-}
+]
 ```
-###### Results
-```json\nSTATUS: 404\n404 page not found\n```
 
-##### Server (SPARQL via API)
+> node y label show the same information also in the UI
+
+### Main nodes (Server)
+
 ```bash
 curl --fail-with-body --silent --show-error \
   -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
@@ -16249,233 +16266,1161 @@ curl --fail-with-body --silent --show-error \
   -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -d '{
-    "query": "SELECT ?nodeCount ?relCount WHERE { { SELECT (COUNT(DISTINCT ?n) AS ?nodeCount) WHERE { { ?n ?p1 ?o1 . } UNION { ?s1 ?p1 ?n . } } } { SELECT (COUNT(*) AS ?relCount) WHERE { ?s2 ?p2 ?o2 . } } }",
+    "query": "SELECT ?node WHERE { ?node a <http://www.wikidata.org/entity/Q108163> . } LIMIT 30",
     "format": "json"
   }'
 ```
 
-###### Results:
+#### Results:
 ```json
-STATUS: 404
-404 page not found
+STATUS: 500
+Internal Server Error
 ```
 
-# Summary
-## Update - Test 7 (Database-level metadata) from latest run
-
-| Query | Cypher | SPARQL | Note |
-|---|---|---|---|
-| 1. Show databases | `500` (`Internal Server Error`) | `500` (`Internal Server Error`) | Both recorded as backend execution errors. |
-| 2. Labels / relationship types / property keys | `200` (labels returned: `Chunk`, `Country`, `Document`, `Event`, `Location`, `MassGrave`, `Organization`, `Person`) | `500` (`Internal Server Error`) | Cypher succeeded; SPARQL failed in this run. |
-| 3. Node schema by label+property | `404` (`page not found`) | `404` (`page not found`) | Endpoint routing/path error recorded. |
-| 4. All property keys | `404` (`page not found`) | `404` (`page not found`) | Endpoint routing/path error recorded. |
-| 5. Relationship schema by type+property | `404` (`page not found`) | `404` (`page not found`) | Endpoint routing/path error recorded. |
-| 6. Node property coverage by label | `404` (`page not found`) | `404` (`page not found`) | Endpoint routing/path error recorded. |
-
-Interpretation: in this latest execution, only **Query 2 (Cypher)** returned data; all other newly filled Test 7 result blocks recorded explicit runtime errors (`500`) or route errors (`404`).
-
-### Objective-based interpretation (what works vs what does not)
-
-
-## Final ingestion validation block (3 databases + mapping) - inconsistency analysis by objective
-
-The `A1/A2/A3/B1/C1/X1/X2` validation block is currently affected by a systemic execution inconsistency: the same objective fails differently across execution paths (Platform often `500`, Server API mostly `404`, and Cypher alternating `500`/`404`). Because no successful payload is returned in this block, the expected data-quality checks are not empirically verifiable in this run.
-
-- **A1 (three-source footprint present)**:
-  - **Expected evidence**: non-zero counts for `cultura_y_censura`, `fosas_comunes`, and `sidbrint`.
-  - **Observed inconsistency**: Cypher/Platform fail with `500`, Server fails with `404`; no sourceTag distribution available.
-  - **Data inconsistency conclusion**: **coverage inconsistency cannot be measured** (missing evidence, not confirmed absence).
-
-- **A2 (mass-grave required mapped fields completeness)**:
-  - **Expected evidence**: coherent counts for `totalMassGraves`, `withName`, `withCountry`, `withAdminLocation`.
-  - **Observed inconsistency**: Platform `500`, Server `404`, Cypher `404`.
-  - **Data inconsistency conclusion**: **field-completeness gaps cannot be quantified** (no returned aggregates).
-
-- **A3 (mass-grave coordinate integrity)**:
-  - **Expected evidence**: list/count of malformed `P625` literals.
-  - **Observed inconsistency**: Platform `500`, Server `404`, Cypher `404`.
-  - **Data inconsistency conclusion**: **coordinate-quality anomalies cannot be confirmed nor ruled out**.
-
-- **B1 (SIDBRINT person integrity)**:
-  - **Expected evidence**: counts for persons with label and with birth/death marker.
-  - **Observed inconsistency**: Platform `500`, Server `404`, Cypher `404`.
-  - **Data inconsistency conclusion**: **identity/temporal mapping completeness remains unverified**.
-
-- **C1 (Cultura y censura document integrity)**:
-  - **Expected evidence**: `totalDocuments` vs `withTitle`.
-  - **Observed inconsistency**: Platform `500`, Server `404`, Cypher `404`.
-  - **Data inconsistency conclusion**: **document metadata completeness is inconclusive**.
-
-- **X1 (cross-source duplicate candidates by normalized title)**:
-  - **Expected evidence**: repeated normalized labels with `nodes > 1`.
-  - **Observed inconsistency**: Platform `500`, Server `404`, Cypher `404`.
-  - **Data inconsistency conclusion**: **duplicate-risk cannot be assessed** in this run.
-
-- **X2 (type conflict per entity / merge-error signal)**:
-  - **Expected evidence**: entities with unusually high type multiplicity.
-  - **Observed inconsistency**: Platform `500`, Server `404`, Cypher `404`.
-  - **Data inconsistency conclusion**: **merge/type-conflict anomalies cannot be tested**.
-
-Net interpretation for this block: the dominant inconsistency is **operational non-reproducibility across query paths**, which prevents objective-level data validation. Therefore, current `Final ingestion validation` outcomes should be marked **inconclusive due to execution instability**, not interpreted as confirmed mapping/data failures.
-
-## Searches compared
-
-| Objective          | task                                  | Cypher                     | SPARQL                                | Server |
-| ------------------ | ------------------------------------- | -------------------------- | ------------------------------------- | ------ |
-| 1. SELECT          | Triple-pattern retrieval (`?s ?p ?o`) | Success                    | Mixed (`timeout` first, then success) | `500`  |
-| 2. FILTER          | String filter (`brigadista`)          | Success (`[]`, no matches) | `500`                                 | `500`  |
-| 3. LIMIT/OFFSET    | Ordered pagination                    | Success                    | `timeout`                             | `404`  |
-| 4. ASK             | Existence checks                      | Success                    | Mixed (one `timeout`, one success)    | `404`  |
-| 5. COUNT (ext)     | Node/relationship counting            | Success                    | Failed (`timeout` / `500`)            | `404`  |
-| 6. CONSTRUCT       | Graph-shaped export                   | Success                    | `timeout`                             | `404`  |
-| 7. DESCRIBE        | Entity-centric inspection             | Success                    | Success (minimal payload)             | `404`  |
-| 8. FILTER (retest) | String filter (repeat block)          | Success (`[]`, no matches) | `500`                                 | `404`  |
-| 9. ORDER BY        | Stable sorting                        | `500`                      | `timeout`                             | `404`  |
-| 9b. GROUP BY       | Type distribution                     | Success                    | Empty result block                    | `404`  |
-| 10. AGGREGATIONS   | Multi-metric aggregation              | Empty result block         | Empty result block                    | `404`  |
-
-
-## Server access assessment (live re-check)
-
-A live replay of all `Server (SPARQL via API)` blocks showed mixed but degraded operability: previous manual re-checks recovered valid responses in selected queries (e.g., ASK/COUNT/GROUP BY/AGGREGATIONS), but the full sequential replay updated in this document ended with `0/13` successful responses (`500` in the first blocks and then mostly `404`). This indicates the endpoint is reachable but currently unstable or inconsistently routed/authenticated across requests, so server-side results should be treated as non-reproducible until backend configuration is stabilized.
-
-## Server queries that returned data (live checks)
-
-| Query block | Query intent | Status | Data recovered (preview) |
-|---|---|---|---|
-| 4. ASK queries (variant 1) | Generic existence check (`ASK WHERE { ?s ?p ?o }`) | `200` | `true` |
-| 5. COUNT queries (extended) - count nodes | Distinct node count | `200` | `count = 2867` |
-| 5. COUNT queries (extended) - count relationships | Relationship count | `200` | `count = 4482` |
-| 6. CONSTRUCT | Triple payload export | `200` | Rows returned (`subject`, `predicate`, `object`) |
-| GROUP BY | Count by type/label | `200` | `Person 1029`, `Document 724`, `MassGrave 492`, ... |
-| 10. AGGREGATIONS | Multi-metric totals | `200` | `nodeCount = 2890`, `relCount = 4482` |
-
-### Probable causes for missing results in other server queries
-
-- **Backend route/proxy instability**: repeated `404 page not found` in protocol/advanced suites suggests endpoint routing mismatch or intermittent gateway mapping.
-- **Server-side execution failures**: repeated `500 Internal Server Error` in SELECT/FILTER and early test blocks indicates query-handler crashes before returning payloads.
-- **Query translation limits**: failing blocks concentrate in operations that often require extra translation logic (`ORDER BY`, `DESCRIBE`, complex FILTER variants).
-- **Session/auth inconsistency across runs**: some manual checks returned `200`, but full sequential replay returned `0/13`, suggesting non-deterministic auth/routing context.
-- **Operational instability (non-reproducibility)**: contradictory outcomes over short intervals indicate unstable backend state rather than only query syntax errors.
-
-### Server query errors map
-
-| Block | Server query scope | Error |
-|---|---|---|
-| Test 0 | Main nodes / People / Mass graves | `STATUS: 500` (`Internal Server Error`) |
-| Test 1 | Total nodes | `STATUS: 500` (`Internal Server Error`) |
-| Test 2 | Total relationships | `STATUS: 500` (`Internal Server Error`) |
-| Test 3 | Nodes per label | `STATUS: 500` (`Internal Server Error`) |
-| Test 4 | Relationships per type | `STATUS: 500` (`Internal Server Error`) |
-| Test 5 | Node/relationship property diagnostics | `STATUS: 500` (`Internal Server Error`) |
-| Test 6 | Relationship property totals | `STATUS: 500` (`Internal Server Error`) |
-| 2. Final ingestion validation | A1, A2, A3, B1, C1, X1, X2 | `STATUS: 404` (`404 page not found`) |
-| SELECT/FILTER suite | SELECT, FILTER | `STATUS: 500` (`Internal Server Error`) |
-| Protocol/advanced suite | LIMIT/OFFSET, ASK, COUNT(ext), CONSTRUCT, DESCRIBE, FILTER, ORDER BY, GROUP BY, AGGREGATIONS | `STATUS: 404` (`404 page not found`) |
-
-
-
-
-
-## Cypher vs SPARQL data evaluation
-
-### Evidence-based comparison
-
-| Dimension | Cypher | SPARQL | Assessment |
-|---|---|---|---|
-| Query success rate (recorded blocks) | High in core blocks (SELECT, LIMIT/OFFSET, ASK, COUNT, CONSTRUCT, GROUP BY, DESCRIBE) with some failures (`ORDER BY`, empty AGGREGATIONS block) | Lower and unstable (timeouts/`500` in multiple blocks; one minimal DESCRIBE success; some empty result blocks) | **Cypher stronger** for reproducible execution in current environment |
-| Data completeness in returned payloads | Rich graph payloads and structured tabular outputs (e.g., CONSTRUCT, GROUP BY counts) | Often incomplete due to timeout/failure; when successful, payloads may be minimal | **Cypher stronger** for actionable data extraction |
-| Consistency across repeated intents | Generally consistent in successful blocks (counts and structure aligned internally) | Mixed behavior across equivalent intents (success in isolated checks, failures in many logged tests) | **Cypher stronger** for consistency |
-| Operational robustness | Some degradation but still usable for most analytical checks | Frequent timeout/failure under comparable operations | **Cypher stronger** for robustness |
-
-### Interpreted result
-
-For this test corpus and run context, **Cypher is currently the primary reliable method** for data retrieval and validation. **SPARQL remains partially usable** but non-reproducible under several core/advanced operations, so SPARQL-derived conclusions should be treated as provisional unless revalidated after backend stabilization.
-
-### Minimal decision rule for next runs
-
-- Use **Cypher-first** for baseline metrics, ingestion validation, and curation diagnostics.
-- Use **SPARQL as confirmatory/parallel check** only where responses are stable.
-- Mark any SPARQL timeout/`500`/empty block as **inconclusive** (not negative evidence about data content).
-
-
-- Explainability availability (can user trace why a result appears?).
-- Provenance traceability (source document/entity path present).
-- Privacy safeguards documented (sensitive attributes handling).
-- Compliance checklist status (GDPR/AI Act-relevant controls, if applicable).
-
-## 2.3 Scoring rubric (0–4)
-
-- **0 = absent**: no evidence.
-- **1 = poor**: ad hoc, unstable, not reproducible.
-- **2 = partial**: some evidence, major gaps.
-- **3 = good**: consistent evidence, minor gaps.
-- **4 = strong**: robust, reproducible, documented mitigation.
-
-For each dimension, compute:
-
-`dimension_score = average(indicator_scores)`
-
-Global score:
-
-`overall_score = average(A, B, C, D, E)`
-
-Optional weighting (if needed for HerStory priorities):
-- A: 25%
-- B: 20%
-- C: 20%
-- D: 20%
-- E: 15%
-
-## 2.4 Evaluation protocol (no execution yet)
-
-1. **Freeze context**: define dataset snapshot/date and test objective.
-2. **Run technical battery**: execute Test 1–11 + SPARQL/Cypher equivalence checks.
-3. **Run bias checks**: compare coverage/errors across relevant groups.
-4. **Run user mini-study**: 3–5 representative tasks, 5–8 participants (or experts).
-5. **Score rubric**: assign 0–4 by indicator with short evidence note.
-6. **Prioritize fixes**: high-impact gaps first (data, fairness, usability blockers).
-7. **Re-test**: rerun same battery after changes to measure improvement.
-
-## 2.5 Minimal reporting template
-
-```markdown
-### Evaluation run
-- Date:
-- Dataset snapshot:
-- Evaluators:
-- Goal:
-
-### Scores (0–4)
-- A) Data/schema quality:
-- B) Query effectiveness/robustness:
-- C) Fairness/bias risk:
-- D) Usability/cognitive load:
-- E) Transparency/ethics/governance:
-- Overall:
-
-### Key findings
-1.
-2.
-3.
-
-### Risks
-1.
-2.
-
-### Actions
-1.
-2.
+### People (UI)
+```Sparql
+SELECT ?node ?label ?birth ?death
+WHERE {
+  ?node <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.wikidata.org/entity/Q5> .
+  ?node <http://www.wikidata.org/entity/P1476> ?label .
+  OPTIONAL { ?node <http://www.wikidata.org/entity/P569> ?birth }
+  OPTIONAL { ?node <http://www.wikidata.org/entity/P570> ?death }
+}
+ORDER BY ?label
+LIMIT 30
 ```
 
-## 2.6 Source basis used to derive this framework
+#### Results
+First try:
+```
+Error: Request failed with status code 500
+```
+Second:
+```json
+[
+  {
+    "node": "Aalto, William",
+    "label": "Aalto, William",
+    "birth": "1915-07-30T00:00:00Z",
+    "death": "1958-06-11T00:00:00Z"
+  },
+  {
+    "node": "Aalto, Yrjo Johan",
+    "label": "Aalto, Yrjo Johan",
+    "birth": null,
+    "death": null
+  },
+  {
+    "node": "Abadia, Juan",
+    "label": "Abadia, Juan",
+    "birth": null,
+    "death": null
+  },
+  {
+    "node": "Abadia, Lucien",
+    "label": "Abadia, Lucien",
+    "birth": null,
+    "death": null
+  },
+  {
+    "node": "Abadie De Pascaou, Pierre-Gaston-Jean",
+    "label": "Abadie De Pascaou, Pierre-Gaston-Jean",
+    "birth": null,
+    "death": null
+  },
+  {
+    "node": "Abbelse, François",
+    "label": "Abbelse, François",
+    "birth": "1914-01-01",
+    "death": null
+  },
+  {
+    "node": "Abberville, Pierre",
+    "label": "Abberville, Pierre",
+    "birth": null,
+    "death": null
+  },
+  {
+    "node": "Abbey, Albert Alfr",
+    "label": "Abbey, Albert Alfr",
+    "birth": null,
+    "death": null
+  },
+  {
+    "node": "Abderrahmani, Alí",
+    "label": "Abderrahmani, Alí",
+    "birth": "1903-01-25T00:00:00Z",
+    "death": null
+  },
+  {
+    "node": "Abdmer, Ramoni",
+    "label": "Abdmer, Ramoni",
+    "birth": null,
+    "death": null
+  },
+  {
+    "node": "Abdrensen, Alf",
+    "label": "Abdrensen, Alf",
+    "birth": null,
+    "death": null
+  },
+  {
+    "node": "Abello, Giuseppe",
+    "label": "Abello, Giuseppe",
+    "birth": "1906-12-10T00:00:00Z",
+    "death": null
+  },
+  {
+    "node": "Abello, Victor",
+    "label": "Abello, Victor",
+    "birth": "1908-01-01T00:00:00Z",
+    "death": null
+  },
+  {
+    "node": "Abramczuk, Jan",
+    "label": "Abramczuk, Jan",
+    "birth": "1912-01-01",
+    "death": null
+  },
+  {
+    "node": "Abramczyk, Mordka",
+    "label": "Abramczyk, Mordka",
+    "birth": "1911-08-05",
+    "death": null
+  },
+  {
+    "node": "Abramofsky, Bernard",
+    "label": "Abramofsky, Bernard",
+    "birth": null,
+    "death": null
+  },
+  {
+    "node": "Abramovicz, Daniel",
+    "label": "Abramovicz, Daniel",
+    "birth": "1911-12-24T00:00:00Z",
+    "death": "1938-01-01T00:00:00Z"
+  },
+  {
+    "node": "Abramovicz, Julius",
+    "label": "Abramovicz, Julius",
+    "birth": "1915-01-01T00:00:00Z",
+    "death": null
+  },
+  {
+    "node": "Abribas",
+    "label": "Abribas",
+    "birth": null,
+    "death": null
+  },
+  {
+    "node": "Abribat, Georges",
+    "label": "Abribat, Georges",
+    "birth": null,
+    "death": null
+  },
+  {
+    "node": "Abril Burgos, Miguel",
+    "label": "Abril Burgos, Miguel",
+    "birth": null,
+    "death": null
+  },
+  {
+    "node": "Acedo Luna, Ventura",
+    "label": "Acedo Luna, Ventura",
+    "birth": null,
+    "death": null
+  },
+  {
+    "node": "Acero Hoda, Diego",
+    "label": "Acero Hoda, Diego",
+    "birth": "1912-10-22T00:00:00Z",
+    "death": null
+  },
+  {
+    "node": "Acero, Juan",
+    "label": "Acero, Juan",
+    "birth": null,
+    "death": null
+  },
+  {
+    "node": "Achard, Jean",
+    "label": "Achard, Jean",
+    "birth": "1912-09-22T00:00:00Z",
+    "death": null
+  },
+  {
+    "node": "Acher, Henri",
+    "label": "Acher, Henri",
+    "birth": "1904-02-26T00:00:00Z",
+    "death": null
+  },
+  {
+    "node": "Acherbon, Herman",
+    "label": "Acherbon, Herman",
+    "birth": null,
+    "death": null
+  },
+  {
+    "node": "Acosta Ortiz, Bartolome",
+    "label": "Acosta Ortiz, Bartolome",
+    "birth": null,
+    "death": null
+  },
+  {
+    "node": "Acosta Pérez, Alberto",
+    "label": "Acosta Pérez, Alberto",
+    "birth": "1910-08-07T00:00:00Z",
+    "death": null
+  },
+  {
+    "node": "Acosta Sánchez, Francisco",
+    "label": "Acosta Sánchez, Francisco",
+    "birth": null,
+    "death": null
+  }
+]
+```
 
-- Gounakis, N., Mountantonakis, M., & Tzitzikas, Y. (2023). CIDOC-CRM KGQA benchmark/evaluation. DOI: `10.1145/3603163.3609067`.
-- D'Souza, J., et al. (2024). ORKG multi-dimensional semantic quality assessment. DOI: `10.36253/jlis.it-547`.
-- Jiang, M., et al. (2022). Robustness under OCR-noisy deployment conditions. DOI: `10.1007/s00799-021-00313-y`.
-- Li, W. W., et al. (2022). Repository infrastructure benchmark. DOI: `10.1016/j.compenvurbsys.2022.101884`.
-- Calvano, M. (2024). Human-centered SAI quality/trust/safety framing. DOI: `10.1145/3661167.3661223`.
-- Chen, Y., et al. (2023). Biases across AI lifecycle + HCAI mitigation. DOI: `10.2196/43251`.
-- Binns, R. (2018). Fairness definitions and political-philosophy framing. URL: `https://proceedings.mlr.press/v81/binns18a.html`.
-- Calvo Flores, L. (2023). Cognitive load reduction for decision-support visualizations. URL: `http://hdl.handle.net/10803/688422`.
-- Çiçek, S., & Özkar, M. (2025). Expert-evaluated AI-assisted design-space method. DOI: `10.1007/s10798-025-10033-y`.
+> Same label = node ❓
+> Some present Null - is this from the original database or is the data lost? ☝️ > Miquel
+>My review is: > **Proposed revision of the query and date modelling**  
+>  
+> This second query reproduces the same conceptual mismatches identified in the previous case, and additionally reveals a data-quality problem in the handling of incomplete dates.  
+>  
+> **1. Incorrect Wikidata query patterns**  
+> The query uses `rdf:type` and `P1476` in a way that is not aligned with the Wikidata RDF model. In Wikidata, class membership should be queried through **instance of (P31)**, typically as `wdt:P31`, whereas entity labels should be retrieved through `rdfs:label`. `P1476` denotes **title**, i.e. the published title of a work, and should not be used as the generic label of a person.  
+>  
+> **2. Correct treatment of missing values**  
+> The presence of `null` values for birth or death dates appears to be acceptable when the source database does not provide those data. In such cases, the graph correctly reflects the absence of information.  
+>  
+> **3. Incorrect completion of partial dates**  
+> A more serious issue arises when the source provides only a partial date, such as a year without month or day. In the current graph, these values are expanded into fully specified dates such as `1912-01-01`. This is semantically incorrect, because the original source does not assert either the month or the day. These components are therefore artificial and should not be added during transformation.  
+>  
+> **4. Inappropriate use of `dateTime` values**  
+> In some cases, the graph further converts such incomplete dates into `dateTime` values (e.g. `1908-01-01T00:00:00Z`). This is also inappropriate, since it introduces a level of temporal precision — including time and timezone — that is completely absent from the source data.  
+>  
+> **Recommendation**  
+> The query and the transformation pipeline should be revised so that:  
+>  
+> * persons are retrieved with `wdt:P31 wd:Q5`,  
+> * entity labels are obtained through `rdfs:label`,  
+> * `P1476` is not used as a substitute for labels,  
+> * missing dates remain missing,  
+> * and partial dates are preserved as partial dates, without inventing month, day, or time components.  
+>  
+> **Data-quality principle**  
+> The graph should preserve the precision of the source data rather than increase it artificially. When only a year is known, the RDF representation should encode that reduced precision explicitly, instead of converting it into a fully specified calendar date or date-time value.
+
+### People (Server)
+
+```Sparql
+curl --fail-with-body --silent --show-error \
+  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
+  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{
+    "query": "SELECT ?node ?label ?birth ?death WHERE { ?node <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.wikidata.org/entity/Q5> . ?node <http://www.wikidata.org/entity/P1476> ?label . OPTIONAL { ?node <http://www.wikidata.org/entity/P569> ?birth } OPTIONAL { ?node <http://www.wikidata.org/entity/P570> ?death } } ORDER BY ?label LIMIT 30",
+    "format": "json"
+  }'
+```
+
+#### Results:
+```json
+STATUS: 500
+Internal Server Error
+```
+
+
+### Mass graves (UI)
+```Sparql
+SELECT ?node ?label ?location
+WHERE {
+  ?node <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.wikidata.org/entity/Q108163> .
+  ?node <http://www.wikidata.org/entity/P1476> ?label .
+  OPTIONAL { ?node <http://www.wikidata.org/entity/P131> ?location }
+}
+ORDER BY ?label
+LIMIT 30
+```
+
+#### Response with limit
+```json
+[
+  {
+    "node": "A Tocar Del Cementiri De Sant Romà D'abella",
+    "label": "A Tocar Del Cementiri De Sant Romà D'abella",
+    "location": "Spain"
+  },
+  {
+    "node": "A Tocar Del Cementiri De Sant Romà D'abella",
+    "label": "A Tocar Del Cementiri De Sant Romà D'abella",
+    "location": "Lleida"
+  },
+  {
+    "node": "A Tocar Del Cementiri De Sant Romà D'abella",
+    "label": "A Tocar Del Cementiri De Sant Romà D'abella",
+    "location": "Sant Romà d'Abella"
+  },
+  {
+    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "location": "Catalunya"
+  },
+  {
+    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "location": "Spain"
+  },
+  {
+    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "location": "Barcelona"
+  },
+  {
+    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "location": "Sant Feliu de Llobregat"
+  },
+  {
+    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "location": "Baix Llobregat"
+  },
+  {
+    "node": "Aljub Al Soleràs",
+    "label": "Aljub Al Soleràs",
+    "location": "Spain"
+  },
+  {
+    "node": "Aljub Al Soleràs",
+    "label": "Aljub Al Soleràs",
+    "location": "Lleida"
+  },
+  {
+    "node": "Aljub Al Soleràs",
+    "label": "Aljub Al Soleràs",
+    "location": "El Soleràs"
+  },
+  {
+    "node": "Antic Camí De Llanera",
+    "label": "Antic Camí De Llanera",
+    "location": "Llobera"
+  },
+  {
+    "node": "Aqüeducte del Collet",
+    "label": "Aqüeducte del Collet",
+    "location": "Barcelona"
+  },
+  {
+    "node": "Aqüeducte del Collet",
+    "label": "Aqüeducte del Collet",
+    "location": "Guardiola de Berguedà"
+  },
+  {
+    "node": "Aulivar Del Civit",
+    "label": "Aulivar Del Civit",
+    "location": "Spain"
+  },
+  {
+    "node": "Aulivar Del Civit",
+    "label": "Aulivar Del Civit",
+    "location": "Lleida"
+  },
+  {
+    "node": "Aulivar Del Civit",
+    "label": "Aulivar Del Civit",
+    "location": "El Cogul"
+  },
+  {
+    "node": "Aulivarets De Vespella De Gaià",
+    "label": "Aulivarets De Vespella De Gaià",
+    "location": "Spain"
+  },
+  {
+    "node": "Aulivarets De Vespella De Gaià",
+    "label": "Aulivarets De Vespella De Gaià",
+    "location": "Vespella de Gaià"
+  },
+  {
+    "node": "Aumaec",
+    "label": "Aumaec",
+    "location": null
+  },
+  {
+    "node": "Avenc De La Figuerota. Puig Francàs",
+    "label": "Avenc De La Figuerota. Puig Francàs",
+    "location": "Tarragona"
+  },
+  {
+    "node": "Avenc De La Figuerota. Puig Francàs",
+    "label": "Avenc De La Figuerota. Puig Francàs",
+    "location": "Spain"
+  },
+  {
+    "node": "Avenc De La Figuerota. Puig Francàs",
+    "label": "Avenc De La Figuerota. Puig Francàs",
+    "location": "El Montmell"
+  },
+  {
+    "node": "Bancal Del Panser",
+    "label": "Bancal Del Panser",
+    "location": "Spain"
+  },
+  {
+    "node": "Bancal Del Panser",
+    "label": "Bancal Del Panser",
+    "location": "Lleida"
+  },
+  {
+    "node": "Bancal Del Panser",
+    "label": "Bancal Del Panser",
+    "location": "El Cogul"
+  },
+  {
+    "node": "Bancal de l'Anton",
+    "label": "Bancal de l'Anton",
+    "location": "Spain"
+  },
+  {
+    "node": "Bancal de l'Anton",
+    "label": "Bancal de l'Anton",
+    "location": "Lleida"
+  },
+  {
+    "node": "Bancal de l'Anton",
+    "label": "Bancal de l'Anton",
+    "location": "El Cogul"
+  },
+  {
+    "node": "Banyadé: Solana Del Pas Del Pi",
+    "label": "Banyadé: Solana Del Pas Del Pi",
+    "location": "Spain"
+  }
+]
+```
+
+Response without limit
+```json
+[
+  {
+    "node": "A Tocar Del Cementiri De Sant Romà D'abella",
+    "label": "A Tocar Del Cementiri De Sant Romà D'abella",
+    "location": "Spain"
+  },
+  {
+    "node": "A Tocar Del Cementiri De Sant Romà D'abella",
+    "label": "A Tocar Del Cementiri De Sant Romà D'abella",
+    "location": "Lleida"
+  },
+  {
+    "node": "A Tocar Del Cementiri De Sant Romà D'abella",
+    "label": "A Tocar Del Cementiri De Sant Romà D'abella",
+    "location": "Sant Romà d'Abella"
+  },
+  {
+    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "location": "Catalunya"
+  },
+  {
+    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "location": "Spain"
+  },
+  {
+    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "location": "Barcelona"
+  },
+  {
+    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "location": "Sant Feliu de Llobregat"
+  },
+  {
+    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
+    "location": "Baix Llobregat"
+  },
+  {
+    "node": "Aljub Al Soleràs",
+    "label": "Aljub Al Soleràs",
+    "location": "Spain"
+  },
+  {
+    "node": "Aljub Al Soleràs",
+    "label": "Aljub Al Soleràs",
+    "location": "Lleida"
+  },
+  {
+    "node": "Aljub Al Soleràs",
+    "label": "Aljub Al Soleràs",
+    "location": "El Soleràs"
+  },
+  {
+    "node": "Antic Camí De Llanera",
+    "label": "Antic Camí De Llanera",
+    "location": "Llobera"
+  },
+  {
+    "node": "Aqüeducte del Collet",
+    "label": "Aqüeducte del Collet",
+    "location": "Barcelona"
+  },
+  {
+    "node": "Aqüeducte del Collet",
+    "label": "Aqüeducte del Collet",
+    "location": "Guardiola de Berguedà"
+  },
+  {
+    "node": "Aulivar Del Civit",
+    "label": "Aulivar Del Civit",
+    "location": "Spain"
+  },
+  {
+    "node": "Aulivar Del Civit",
+    "label": "Aulivar Del Civit",
+    "location": "Lleida"
+  },
+  {
+    "node": "Aulivar Del Civit",
+    "label": "Aulivar Del Civit",
+    "location": "El Cogul"
+  },
+  {
+    "node": "Aulivarets De Vespella De Gaià",
+    "label": "Aulivarets De Vespella De Gaià",
+    "location": "Spain"
+  },
+  {
+    "node": "Aulivarets De Vespella De Gaià",
+    "label": "Aulivarets De Vespella De Gaià",
+    "location": "Vespella de Gaià"
+  },
+  {
+    "node": "Aumaec",
+    "label": "Aumaec",
+    "location": null
+  },
+  {
+    "node": "Avenc De La Figuerota. Puig Francàs",
+    "label": "Avenc De La Figuerota. Puig Francàs",
+    "location": "Tarragona"
+  },
+  {
+    "node": "Avenc De La Figuerota. Puig Francàs",
+    "label": "Avenc De La Figuerota. Puig Francàs",
+    "location": "Spain"
+  },
+  {
+    "node": "Avenc De La Figuerota. Puig Francàs",
+    "label": "Avenc De La Figuerota. Puig Francàs",
+    "location": "El Montmell"
+  },
+  {
+    "node": "Bancal Del Panser",
+    "label": "Bancal Del Panser",
+    "location": "Spain"
+  },
+  {
+    "node": "Bancal Del Panser",
+    "label": "Bancal Del Panser",
+    "location": "Lleida"
+  },
+  {
+    "node": "Bancal Del Panser",
+    "label": "Bancal Del Panser",
+    "location": "El Cogul"
+  },
+  {
+    "node": "Bancal de l'Anton",
+    "label": "Bancal de l'Anton",
+    "location": "Spain"
+  },
+  {
+    "node": "Bancal de l'Anton",
+    "label": "Bancal de l'Anton",
+    "location": "Lleida"
+  },
+  {
+    "node": "Bancal de l'Anton",
+    "label": "Bancal de l'Anton",
+    "location": "El Cogul"
+  },
+  {
+    "node": "Banyadé: Solana Del Pas Del Pi",
+    "label": "Banyadé: Solana Del Pas Del Pi",
+    "location": "Spain"
+  },
+  {
+    "node": "Banyadé: Solana Del Pas Del Pi",
+    "label": "Banyadé: Solana Del Pas Del Pi",
+    "location": "Conca de Dalt"
+  },
+  {
+    "node": "Barranc De Torrenova",
+    "label": "Barranc De Torrenova",
+    "location": "Vilalba dels Arcs"
+  },
+  {
+    "node": "Barranc de la Call",
+    "label": "Barranc de la Call",
+    "location": "Spain"
+  },
+  {
+    "node": "Barranc de la Call",
+    "label": "Barranc de la Call",
+    "location": "Isona i Conca Dellà"
+  },
+  {
+    "node": "Bordes De Cabrils",
+    "label": "Bordes De Cabrils",
+    "location": "Spain"
+  },
+  {
+    "node": "Bordes De Cabrils",
+    "label": "Bordes De Cabrils",
+    "location": "Lleida"
+  },
+  {
+    "node": "Bordes De Cabrils",
+    "label": "Bordes De Cabrils",
+    "location": "Farrera"
+  },
+  {
+    "node": "Bordes De Tressó",
+    "label": "Bordes De Tressó",
+    "location": "Spain"
+  },
+  {
+    "node": "Bordes De Tressó",
+    "label": "Bordes De Tressó",
+    "location": "Lleida"
+  },
+  {
+    "node": "Bordes De Tressó",
+    "label": "Bordes De Tressó",
+    "location": "Farrera"
+  },
+  {
+    "node": "Bosc I Trinxeres Del Coll De Ban",
+    "label": "Bosc I Trinxeres Del Coll De Ban",
+    "location": "Bassella"
+  },
+  {
+    "node": "Ca La Maxina (Torregassa)",
+    "label": "Ca La Maxina (Torregassa)",
+    "location": "Tarragona"
+  },
+  {
+    "node": "Ca La Maxina (Torregassa)",
+    "label": "Ca La Maxina (Torregassa)",
+    "location": "Spain"
+  },
+  {
+    "node": "Ca La Maxina (Torregassa)",
+    "label": "Ca La Maxina (Torregassa)",
+    "location": "Sant Jaume dels Domenys"
+  },
+  {
+    "node": "Cabana De L'agnès",
+    "label": "Cabana De L'agnès",
+    "location": "Spain"
+  },
+  {
+    "node": "Cabana De L'agnès",
+    "label": "Cabana De L'agnès",
+    "location": "Lleida"
+  },
+  {
+    "node": "Cabana De L'agnès",
+    "label": "Cabana De L'agnès",
+    "location": "L'Albagés"
+  },
+  {
+    "node": "Cal Corretger",
+    "label": "Cal Corretger",
+    "location": "Spain"
+  },
+  {
+    "node": "Cal Corretger",
+    "label": "Cal Corretger",
+    "location": "Santa Susanna"
+  },
+  {
+    "node": "Cal Trepat",
+    "label": "Cal Trepat",
+    "location": "Spain"
+  },
+  {
+    "node": "Cal Trepat",
+    "label": "Cal Trepat",
+    "location": "Lleida"
+  },
+  {
+    "node": "Cal Trepat",
+    "label": "Cal Trepat",
+    "location": "Tàrrega"
+  },
+  {
+    "node": "Camp De La Pona",
+    "label": "Camp De La Pona",
+    "location": "Spain"
+  },
+  {
+    "node": "Camp De La Pona",
+    "label": "Camp De La Pona",
+    "location": "Lleida"
+  },
+  {
+    "node": "Camp De La Pona",
+    "label": "Camp De La Pona",
+    "location": "Montellà i Martinet"
+  },
+  {
+    "node": "Camp De Treball Núm. 2 De L’hospitalet De L’infant.",
+    "label": "Camp De Treball Núm. 2 De L’hospitalet De L’infant.",
+    "location": "Spain"
+  },
+  {
+    "node": "Camp De Treball Núm. 2 De L’hospitalet De L’infant.",
+    "label": "Camp De Treball Núm. 2 De L’hospitalet De L’infant.",
+    "location": "Vandellòs I L'hospitalet De L'infant"
+  },
+  {
+    "node": "Camp Dels Morts De La Casagolda",
+    "label": "Camp Dels Morts De La Casagolda",
+    "location": "Spain"
+  },
+  {
+    "node": "Camp Dels Morts De La Casagolda",
+    "label": "Camp Dels Morts De La Casagolda",
+    "location": "Lleida"
+  },
+  {
+    "node": "Camp Dels Morts De La Casagolda",
+    "label": "Camp Dels Morts De La Casagolda",
+    "location": "Castellar de la Ribera"
+  },
+  {
+    "node": "Camp Malacara",
+    "label": "Camp Malacara",
+    "location": "Spain"
+  },
+  {
+    "node": "Camp Malacara",
+    "label": "Camp Malacara",
+    "location": "Lleida"
+  },
+  {
+    "node": "Camp Malacara",
+    "label": "Camp Malacara",
+    "location": "Tarrés"
+  },
+  {
+    "node": "Camí De L'Hort D'En Tona - Bòbila Del Sogas",
+    "label": "Camí De L'Hort D'En Tona - Bòbila Del Sogas",
+    "location": "Spain"
+  },
+  {
+    "node": "Camí De L'Hort D'En Tona - Bòbila Del Sogas",
+    "label": "Camí De L'Hort D'En Tona - Bòbila Del Sogas",
+    "location": "Vilafranca del Penedès"
+  },
+  {
+    "node": "Camí De La Font De Conill. Cabra Del Camp",
+    "label": "Camí De La Font De Conill. Cabra Del Camp",
+    "location": "Tarragona"
+  },
+  {
+    "node": "Camí De La Font De Conill. Cabra Del Camp",
+    "label": "Camí De La Font De Conill. Cabra Del Camp",
+    "location": "Spain"
+  },
+  {
+    "node": "Camí De La Font De Conill. Cabra Del Camp",
+    "label": "Camí De La Font De Conill. Cabra Del Camp",
+    "location": "Cabra del Camp"
+  },
+  {
+    "node": "Camí De Les Eres (Cometes).",
+    "label": "Camí De Les Eres (Cometes).",
+    "location": "Tarragona"
+  },
+  {
+    "node": "Camí De Les Eres (Cometes).",
+    "label": "Camí De Les Eres (Cometes).",
+    "location": "Spain"
+  },
+  {
+    "node": "Camí De Les Eres (Cometes).",
+    "label": "Camí De Les Eres (Cometes).",
+    "location": "Corbera d'Ebre"
+  },
+  {
+    "node": "Camí Fondo De Torres De Segre (Pala De La Gemma)",
+    "label": "Camí Fondo De Torres De Segre (Pala De La Gemma)",
+    "location": "Soses"
+  },
+  {
+    "node": "Camí Nou Del Mas De Galofre",
+    "label": "Camí Nou Del Mas De Galofre",
+    "location": "Tarragona"
+  },
+  {
+    "node": "Camí Nou Del Mas De Galofre",
+    "label": "Camí Nou Del Mas De Galofre",
+    "location": "Spain"
+  },
+  {
+    "node": "Camí Nou Del Mas De Galofre",
+    "label": "Camí Nou Del Mas De Galofre",
+    "location": "L'Albiol"
+  },
+  {
+    "node": "Camí Vell De Falset",
+    "label": "Camí Vell De Falset",
+    "location": "Spain"
+  },
+  {
+    "node": "Camí Vell De Falset",
+    "label": "Camí Vell De Falset",
+    "location": "Gratallops"
+  },
+  {
+    "node": "Camí Vell De La Pobla De Massaluca",
+    "label": "Camí Vell De La Pobla De Massaluca",
+    "location": "Tarragona"
+  },
+  {
+    "node": "Camí Vell De La Pobla De Massaluca",
+    "label": "Camí Vell De La Pobla De Massaluca",
+    "location": "Spain"
+  },
+  {
+    "node": "Camí Vell De La Pobla De Massaluca",
+    "label": "Camí Vell De La Pobla De Massaluca",
+    "location": "Vilalba dels Arcs"
+  },
+  {
+    "node": "Camí de les Monges (II)",
+    "label": "Camí de les Monges (II)",
+    "location": "Spain"
+  },
+  {
+    "node": "Camí de les Monges (II)",
+    "label": "Camí de les Monges (II)",
+    "location": "Barcelona"
+  },
+  {
+    "node": "Camí de les Monges (II)",
+    "label": "Camí de les Monges (II)",
+    "location": "Ullastrell"
+  },
+  {
+    "node": "Can Carous",
+    "label": "Can Carous",
+    "location": "Spain"
+  },
+  {
+    "node": "Can Carous",
+    "label": "Can Carous",
+    "location": "Barcelona"
+  },
+  {
+    "node": "Can Carous",
+    "label": "Can Carous",
+    "location": "Gurb"
+  },
+  {
+    "node": "Can Carreres",
+    "label": "Can Carreres",
+    "location": "Spain"
+  },
+  {
+    "node": "Can Carreres",
+    "label": "Can Carreres",
+    "location": "Rubí"
+  },
+  {
+    "node": "Can Maçana",
+    "label": "Can Maçana",
+    "location": "Barcelona"
+  },
+  {
+    "node": "Can Maçana",
+    "label": "Can Maçana",
+    "location": "El Bruc"
+  },
+  {
+    "node": "Cantallops (vinyes a tocar de la N-340)",
+    "label": "Cantallops (vinyes a tocar de la N-340)",
+    "location": "Spain"
+  },
+  {
+    "node": "Cantallops (vinyes a tocar de la N-340)",
+    "label": "Cantallops (vinyes a tocar de la N-340)",
+    "location": "Barcelona"
+  },
+  {
+    "node": "Cantallops (vinyes a tocar de la N-340)",
+    "label": "Cantallops (vinyes a tocar de la N-340)",
+    "location": "Subirats"
+  },
+  {
+    "node": "Carbonelles",
+    "label": "Carbonelles",
+    "location": "Spain"
+  },
+  {
+    "node": "Carbonelles",
+    "label": "Carbonelles",
+    "location": "Lleida"
+  },
+  {
+    "node": "Carbonelles",
+    "label": "Carbonelles",
+    "location": "Torrebesses"
+  },
+  {
+    "node": "Casa Blanca, creu de ferro de Bellprat",
+    "label": "Casa Blanca, creu de ferro de Bellprat",
+    "location": "Spain"
+  },
+  {
+    "node": "Casa Blanca, creu de ferro de Bellprat",
+    "label": "Casa Blanca, creu de ferro de Bellprat",
+    "location": "Barcelona"
+  },
+  {
+    "node": "Casa Blanca, creu de ferro de Bellprat",
+    "label": "Casa Blanca, creu de ferro de Bellprat",
+    "location": "Bellprat"
+  },
+  {
+    "node": "Casanova De Clarà",
+    "label": "Casanova De Clarà",
+    "location": "Spain"
+  },
+  {
+    "node": "Casanova De Clarà",
+    "label": "Casanova De Clarà",
+    "location": "Lleida"
+  },
+  {
+    "node": "Casanova De Clarà",
+    "label": "Casanova De Clarà",
+    "location": "Castellar de la Ribera"
+  },
+  {
+    "node": "Caseta D'en Codolà",
+    "label": "Caseta D'en Codolà",
+    "location": "Spain"
+  },
+  {
+    "node": "Caseta D'en Codolà",
+    "label": "Caseta D'en Codolà",
+    "location": "Girona"
+  },
+  {
+    "node": "Caseta D'en Codolà",
+    "label": "Caseta D'en Codolà",
+    "location": "Cassà de la Selva"
+  },
+  {
+    "node": "Caseta De Peons Ferroviaris",
+    "label": "Caseta De Peons Ferroviaris",
+    "location": "Tarragona"
+  },
+  {
+    "node": "Caseta De Peons Ferroviaris",
+    "label": "Caseta De Peons Ferroviaris",
+    "location": "Spain"
+  },
+  {
+    "node": "Caseta De Peons Ferroviaris",
+    "label": "Caseta De Peons Ferroviaris",
+    "location": "Móra la Nova"
+  },
+  {
+    "node": "Caseta de peons caminers de Guialmons. Les Piles",
+    "label": "Caseta de peons caminers de Guialmons. Les Piles",
+    "location": "Spain"
+  },
+  {
+    "node": "Caseta de peons caminers de Guialmons. Les Piles",
+    "label": "Caseta de peons caminers de Guialmons. Les Piles",
+    "location": "Guialmons"
+  },
+  {
+    "node": "Cementeri de Montardit d'Enviny",
+    "label": "Cementeri de Montardit d'Enviny",
+    "location": "Spain"
+  },
+  {
+    "node": "Cementeri de Montardit d'Enviny",
+    "label": "Cementeri de Montardit d'Enviny",
+    "location": "Sort"
+  },
+  {
+    "node": "Cementir",
+    "label": "Cementir",
+    "location": null
+  },
+  {
+    "node": "Cementiri  Vell de Vimbodí. Soldats de la 13a Brigada Internacional.",
+    "label": "Cementiri  Vell de Vimbodí. Soldats de la 13a Brigada Internacional.",
+    "location": "Spain"
+  },
+  {
+    "node": "Cementiri  Vell de Vimbodí. Soldats de la 13a Brigada Internacional.",
+    "label": "Cementiri  Vell de Vimbodí. Soldats de la 13a Brigada Internacional.",
+    "location": "Vimbodí i Poblet"
+  },
+  {
+    "node": "Cementiri Ampolla",
+    "label": "Cementiri Ampolla",
+    "location": "Spain"
+  },
+  {
+    "node": "Cementiri Ampolla",
+    "label": "Cementiri Ampolla",
+    "location": "L'Ampolla"
+  },
+  {
+    "node": "Cementiri Antic D'almacelles",
+    "label": "Cementiri Antic D'almacelles",
+    "location": "Spain"
+  },
+  {
+    "node": "Cementiri Antic D'almacelles",
+    "label": "Cementiri Antic D'almacelles",
+    "location": "Lleida"
+  },
+  {
+    "node": "Cementiri Antic D'almacelles",
+    "label": "Cementiri Antic D'almacelles",
+    "location": "Almacelles"
+  },
+  {
+    "node": "Cementiri Balaguer. Fossa Dels 19",
+    "label": "Cementiri Balaguer. Fossa Dels 19",
+    "location": "Balaguer"
+  },
+  {
+    "node": "Cementiri Bellmunt Del Priorat",
+    "label": "Cementiri Bellmunt Del Priorat",
+    "location": "Tarragona"
+  },
+  {
+    "node": "Cementiri Bellmunt Del Priorat",
+    "label": "Cementiri Bellmunt Del Priorat",
+    "location": "Spain"
+  },
+  {
+    "node": "Cementiri Bellmunt Del Priorat",
+    "label": "Cementiri Bellmunt Del Priorat",
+    "location": "Bellmunt del Priorat"
+  },
+  {
+    "node": "Cementiri D'Arenys De Mar",
+    "label": "Cementiri D'Arenys De Mar",
+    "location": "Spain"
+  },
+  {
+    "node": "Cementiri D'Arenys De Mar",
+    "label": "Cementiri D'Arenys De Mar",
+    "location": "Barcelona"
+  },
+  {
+    "node": "Cementiri D'Arenys De Mar",
+    "label": "Cementiri D'Arenys De Mar",
+    "location": "Arenys de Mar"
+  },
+  {
+    "node": "Cementiri D'Arenys De Munt",
+    "label": "Cementiri D'Arenys De Munt",
+    "location": "Spain"
+  },
+  {
+    "node": "Cementiri D'Arenys De Munt",
+    "label": "Cementiri D'Arenys De Munt",
+    "location": "Barcelona"
+  },
+  {
+    "node": "Cementiri D'Arenys De Munt",
+    "label": "Cementiri D'Arenys De Munt",
+    "location": "Arenys de Munt"
+  },
+  {
+    "node": "Cementiri D'Es Bòrdes",
+    "label": "Cementiri D'Es Bòrdes",
+    "location": "Spain"
+  },
+  {
+    "node": "Cementiri D'Es Bòrdes",
+    "label": "Cementiri D'Es Bòrdes",
+    "location": "Es Bòrdes"
+  },
+  {
+    "node": "Cementiri D'Estaràs",
+    "label": "Cementiri D'Estaràs",
+    "location": "Spain"
+  },
+  {
+    "node": "Cementiri D'Estaràs",
+    "label": "Cementiri D'Estaràs",
+    "location": "Lleida"
+  },
+  {
+    "node": "Cementiri D'Estaràs",
+    "label": "Cementiri D'Estaràs",
+    "location": "Estaràs"
+  },
+  {
+    "node": "Cementiri D'alcanó",
+    "label": "Cementiri D'alcanó",
+    "location": "Spain"
+  },
+  {
+    "node": "Cementiri D'alcanó",
+    "label": "Cementiri D'alcanó",
+    "location": "Lleida"
+  },
+  {
+    "node": "Cementiri D'alcanó",
+    "label": "Cementiri D'alcanó",
+    "location": "Alcanó"
+  },
+  {
+    "node": "Cementiri D'alcover. Ossera",
+    "label": "Cementiri D'alcover. Ossera",
+    "location": "Tarragona"
+  },
+  {
+    "node": "Cementiri D'alcover. Ossera",
+    "label": "Cementiri D'alcover. Ossera",
+    "location": "Spain"
+  },
+  {
+    "node": "Cementiri D'alcover. Ossera",
+    "label": "Cementiri D'alcover. Ossera",
+    "location": "Alcover"
+  },
+  {
+    "node": "Cementiri D'alentorn. Enterrament De Vicente Boquera",
+    "label": "Cementiri D'alentorn. Enterrament De Vicente Boquera",
+    "location": "Spain"
+  },
+  {
+    "node": "Cementiri D'alentorn. Enterrament De Vicente Boquera",
+    "label": "Cementiri D'alentorn. Enterrament De Vicente Boquera",
+    "location": "Alentorn"
+  },
+  {
+    "node": "Cementiri D'almenar",
+    "label": "Cementiri D'almenar",
+    "location": "Almenar"
+  },
+  {
