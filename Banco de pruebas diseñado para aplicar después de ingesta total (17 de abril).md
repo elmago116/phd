@@ -1,3 +1,8 @@
+---
+tags:
+  - op/test
+date: 2026-04-17
+---
 # Description of this test bench:
 This test-bench covers a full validation cycle of the HerStory graph: 
 1. Predefined queries (main nodes, people, mass graves, statistics, entity type)
@@ -9,7 +14,9 @@ This test-bench covers a full validation cycle of the HerStory graph:
   7. Protocol/query-behavior tests (SELECT, FILTER, LIMIT/OFFSET, ASK, COUNT, CONSTRUCT, DESCRIBE, ORDER BY, GROUP BY, AGGREGATIONS), 
   8. Gender-aware/socio-economic block (G1–G4) to assess sex/gender footprint, missing coverage, occupation-by-gender proxies, and social/economic-status vocabulary presence.
 
-The test were done comparing the different channels: UI (cypher-Sparql), server vía API key and in some cases the Auraneo4j graph. 
+The test were done comparing the different channels: UI (cypher-Sparql), server vía API key and in some cases the aura neo4j graph. 
+
+[[Evaluation framework]]
 
 # 1. Server - via API - UI
 
@@ -14168,7 +14175,7 @@ WHERE {
 }
 ```
 
-#### Server
+#### Server 
 ```bash
 curl --fail-with-body --silent --show-error \
   -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
@@ -14183,6 +14190,7 @@ curl --fail-with-body --silent --show-error \
 
 #### Results
 ```json
+{"results":[{"distinctSubjects":1806,"distinctPredicates":21,"totalTriples":4482}],"columns":["distinctSubjects","distinctPredicates","totalTriples"]}
 ```
 
 ### Query 2 - Labels, relationship types, property keys (structural overview) #neo4j5
@@ -14239,7 +14247,9 @@ ORDER BY category, value;
   "errorType": "TimeoutError",
   "error": "The read operation timed out"
 }
+```
 
+#### SPARQL
 ```sparql
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 
@@ -16055,1372 +16065,141 @@ curl --fail-with-body --silent --show-error \
   }'
 ```
 ---
-tags:
-  - op/test
-date: 2026-04-17
----
-# 1. Server - via API - UI
+# Summary
+## Update - Test 7 (Database-level metadata) from latest run
 
-## Test 0 - predefined queries
+| Query | Cypher | SPARQL | Note |
+|---|---|---|---|
+| 1. Show databases | `500` (`Internal Server Error`) | `500` (`Internal Server Error`) | Both recorded as backend execution errors. |
+| 2. Labels / relationship types / property keys | `200` (labels returned: `Chunk`, `Country`, `Document`, `Event`, `Location`, `MassGrave`, `Organization`, `Person`) | `500` (`Internal Server Error`) | Cypher succeeded; SPARQL failed in this run. |
+| 3. Node schema by label+property | `404` (`page not found`) | `404` (`page not found`) | Endpoint routing/path error recorded. |
+| 4. All property keys | `404` (`page not found`) | `404` (`page not found`) | Endpoint routing/path error recorded. |
+| 5. Relationship schema by type+property | `404` (`page not found`) | `404` (`page not found`) | Endpoint routing/path error recorded. |
+| 6. Node property coverage by label | `404` (`page not found`) | `404` (`page not found`) | Endpoint routing/path error recorded. |
 
-### Main nodes (UI)
+Interpretation: in this latest execution, only **Query 2 (Cypher)** returned data; all other newly filled Test 7 result blocks recorded explicit runtime errors (`500`) or route errors (`404`).
 
-```Sparql
-SELECT ?node ?label ?location
-WHERE {
-  ?node <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.wikidata.org/entity/Q108163> .
-  ?node <http://www.wikidata.org/entity/P1476> ?label .
-  OPTIONAL { ?node <http://www.wikidata.org/entity/P131> ?location }
-}
-ORDER BY ?label
-LIMIT 30
-```
-
-> Clarify Q108163, P1476> Miquel
-> On diu > Clarify Q108163, P1476> Miquel  
->> **Proposed revision of the query**  
->  
-> The current query presents three conceptual mismatches with the RDF/Wikidata data model.  
->  
-> **1. Inappropriate use of `Q108163` as a generic class**  
-> The use of `Q108163` (“proposition”) is not appropriate in this context. It does not denote the general class of RDF-described entities, but a specific conceptual notion. If the intention is to refer to arbitrary RDF entities, `rdfs:Resource` is a closer semantic match. If, instead, the query is intended to retrieve a specific type of Wikidata entity, then a domain-appropriate Wikidata class should be selected.  
->  
-> **2. Incorrect use of `rdf:type` to express Wikidata class membership**  
-> In the Wikidata model, class membership should be expressed through **instance of (P31)**. Therefore, the pattern using `rdf:type` should be replaced with the corresponding Wikidata property, typically `wdt:P31` in the direct claim representation.  
->  
-> **3. Incorrect use of `P1476` as an item label**  
-> `P1476` corresponds to **title**, i.e. the published name of a work, and its datatype is *monolingual text*. It is not the general-purpose label of an item. For item labels in RDF/Wikidata, the appropriate predicate is `rdfs:label`. Accordingly, `P1476` should only be used when the query specifically targets the title of a work, not the generic label of an entity.  
->  
-> **Recommendation**  
-> The query should be revised so that:  
->  
-> * class membership is expressed with `wdt:P31`,  
-> * entity labels are retrieved with `rdfs:label`,  
-> * `P1476` is reserved for titles of works only,  
-> * and the class constraint is replaced with either `rdfs:Resource` or, preferably, a more precise class aligned with the intended query scope.
-
-#### Results
-```json
-[
-  {
-    "node": "A Tocar Del Cementiri De Sant Romà D'abella",
-    "label": "A Tocar Del Cementiri De Sant Romà D'abella",
-    "location": "Spain"
-  },
-  {
-    "node": "A Tocar Del Cementiri De Sant Romà D'abella",
-    "label": "A Tocar Del Cementiri De Sant Romà D'abella",
-    "location": "Lleida"
-  },
-  {
-    "node": "A Tocar Del Cementiri De Sant Romà D'abella",
-    "label": "A Tocar Del Cementiri De Sant Romà D'abella",
-    "location": "Sant Romà d'Abella"
-  },
-  {
-    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "location": "Catalunya"
-  },
-  {
-    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "location": "Spain"
-  },
-  {
-    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "location": "Barcelona"
-  },
-  {
-    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "location": "Sant Feliu de Llobregat"
-  },
-  {
-    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "location": "Baix Llobregat"
-  },
-  {
-    "node": "Aljub Al Soleràs",
-    "label": "Aljub Al Soleràs",
-    "location": "Spain"
-  },
-  {
-    "node": "Aljub Al Soleràs",
-    "label": "Aljub Al Soleràs",
-    "location": "Lleida"
-  },
-  {
-    "node": "Aljub Al Soleràs",
-    "label": "Aljub Al Soleràs",
-    "location": "El Soleràs"
-  },
-  {
-    "node": "Antic Camí De Llanera",
-    "label": "Antic Camí De Llanera",
-    "location": "Llobera"
-  },
-  {
-    "node": "Aqüeducte del Collet",
-    "label": "Aqüeducte del Collet",
-    "location": "Barcelona"
-  },
-  {
-    "node": "Aqüeducte del Collet",
-    "label": "Aqüeducte del Collet",
-    "location": "Guardiola de Berguedà"
-  },
-  {
-    "node": "Aulivar Del Civit",
-    "label": "Aulivar Del Civit",
-    "location": "Spain"
-  },
-  {
-    "node": "Aulivar Del Civit",
-    "label": "Aulivar Del Civit",
-    "location": "Lleida"
-  },
-  {
-    "node": "Aulivar Del Civit",
-    "label": "Aulivar Del Civit",
-    "location": "El Cogul"
-  },
-  {
-    "node": "Aulivarets De Vespella De Gaià",
-    "label": "Aulivarets De Vespella De Gaià",
-    "location": "Spain"
-  },
-  {
-    "node": "Aulivarets De Vespella De Gaià",
-    "label": "Aulivarets De Vespella De Gaià",
-    "location": "Vespella de Gaià"
-  },
-  {
-    "node": "Aumaec",
-    "label": "Aumaec",
-    "location": null
-  },
-  {
-    "node": "Avenc De La Figuerota. Puig Francàs",
-    "label": "Avenc De La Figuerota. Puig Francàs",
-    "location": "Tarragona"
-  },
-  {
-    "node": "Avenc De La Figuerota. Puig Francàs",
-    "label": "Avenc De La Figuerota. Puig Francàs",
-    "location": "Spain"
-  },
-  {
-    "node": "Avenc De La Figuerota. Puig Francàs",
-    "label": "Avenc De La Figuerota. Puig Francàs",
-    "location": "El Montmell"
-  },
-  {
-    "node": "Bancal Del Panser",
-    "label": "Bancal Del Panser",
-    "location": "Spain"
-  },
-  {
-    "node": "Bancal Del Panser",
-    "label": "Bancal Del Panser",
-    "location": "Lleida"
-  },
-  {
-    "node": "Bancal Del Panser",
-    "label": "Bancal Del Panser",
-    "location": "El Cogul"
-  },
-  {
-    "node": "Bancal de l'Anton",
-    "label": "Bancal de l'Anton",
-    "location": "Spain"
-  },
-  {
-    "node": "Bancal de l'Anton",
-    "label": "Bancal de l'Anton",
-    "location": "Lleida"
-  },
-  {
-    "node": "Bancal de l'Anton",
-    "label": "Bancal de l'Anton",
-    "location": "El Cogul"
-  },
-  {
-    "node": "Banyadé: Solana Del Pas Del Pi",
-    "label": "Banyadé: Solana Del Pas Del Pi",
-    "location": "Spain"
-  }
-]
-```
-
-> node y label show the same information also in the UI
-
-### Main nodes (Server)
-
-```bash
-curl --fail-with-body --silent --show-error \
-  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "SELECT ?node WHERE { ?node a <http://www.wikidata.org/entity/Q108163> . } LIMIT 30",
-    "format": "json"
-  }'
-```
-
-#### Results:
-```json
-STATUS: 500
-Internal Server Error
-```
-
-### People (UI)
-```Sparql
-SELECT ?node ?label ?birth ?death
-WHERE {
-  ?node <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.wikidata.org/entity/Q5> .
-  ?node <http://www.wikidata.org/entity/P1476> ?label .
-  OPTIONAL { ?node <http://www.wikidata.org/entity/P569> ?birth }
-  OPTIONAL { ?node <http://www.wikidata.org/entity/P570> ?death }
-}
-ORDER BY ?label
-LIMIT 30
-```
-
-#### Results
-First try:
-```
-Error: Request failed with status code 500
-```
-Second:
-```json
-[
-  {
-    "node": "Aalto, William",
-    "label": "Aalto, William",
-    "birth": "1915-07-30T00:00:00Z",
-    "death": "1958-06-11T00:00:00Z"
-  },
-  {
-    "node": "Aalto, Yrjo Johan",
-    "label": "Aalto, Yrjo Johan",
-    "birth": null,
-    "death": null
-  },
-  {
-    "node": "Abadia, Juan",
-    "label": "Abadia, Juan",
-    "birth": null,
-    "death": null
-  },
-  {
-    "node": "Abadia, Lucien",
-    "label": "Abadia, Lucien",
-    "birth": null,
-    "death": null
-  },
-  {
-    "node": "Abadie De Pascaou, Pierre-Gaston-Jean",
-    "label": "Abadie De Pascaou, Pierre-Gaston-Jean",
-    "birth": null,
-    "death": null
-  },
-  {
-    "node": "Abbelse, François",
-    "label": "Abbelse, François",
-    "birth": "1914-01-01",
-    "death": null
-  },
-  {
-    "node": "Abberville, Pierre",
-    "label": "Abberville, Pierre",
-    "birth": null,
-    "death": null
-  },
-  {
-    "node": "Abbey, Albert Alfr",
-    "label": "Abbey, Albert Alfr",
-    "birth": null,
-    "death": null
-  },
-  {
-    "node": "Abderrahmani, Alí",
-    "label": "Abderrahmani, Alí",
-    "birth": "1903-01-25T00:00:00Z",
-    "death": null
-  },
-  {
-    "node": "Abdmer, Ramoni",
-    "label": "Abdmer, Ramoni",
-    "birth": null,
-    "death": null
-  },
-  {
-    "node": "Abdrensen, Alf",
-    "label": "Abdrensen, Alf",
-    "birth": null,
-    "death": null
-  },
-  {
-    "node": "Abello, Giuseppe",
-    "label": "Abello, Giuseppe",
-    "birth": "1906-12-10T00:00:00Z",
-    "death": null
-  },
-  {
-    "node": "Abello, Victor",
-    "label": "Abello, Victor",
-    "birth": "1908-01-01T00:00:00Z",
-    "death": null
-  },
-  {
-    "node": "Abramczuk, Jan",
-    "label": "Abramczuk, Jan",
-    "birth": "1912-01-01",
-    "death": null
-  },
-  {
-    "node": "Abramczyk, Mordka",
-    "label": "Abramczyk, Mordka",
-    "birth": "1911-08-05",
-    "death": null
-  },
-  {
-    "node": "Abramofsky, Bernard",
-    "label": "Abramofsky, Bernard",
-    "birth": null,
-    "death": null
-  },
-  {
-    "node": "Abramovicz, Daniel",
-    "label": "Abramovicz, Daniel",
-    "birth": "1911-12-24T00:00:00Z",
-    "death": "1938-01-01T00:00:00Z"
-  },
-  {
-    "node": "Abramovicz, Julius",
-    "label": "Abramovicz, Julius",
-    "birth": "1915-01-01T00:00:00Z",
-    "death": null
-  },
-  {
-    "node": "Abribas",
-    "label": "Abribas",
-    "birth": null,
-    "death": null
-  },
-  {
-    "node": "Abribat, Georges",
-    "label": "Abribat, Georges",
-    "birth": null,
-    "death": null
-  },
-  {
-    "node": "Abril Burgos, Miguel",
-    "label": "Abril Burgos, Miguel",
-    "birth": null,
-    "death": null
-  },
-  {
-    "node": "Acedo Luna, Ventura",
-    "label": "Acedo Luna, Ventura",
-    "birth": null,
-    "death": null
-  },
-  {
-    "node": "Acero Hoda, Diego",
-    "label": "Acero Hoda, Diego",
-    "birth": "1912-10-22T00:00:00Z",
-    "death": null
-  },
-  {
-    "node": "Acero, Juan",
-    "label": "Acero, Juan",
-    "birth": null,
-    "death": null
-  },
-  {
-    "node": "Achard, Jean",
-    "label": "Achard, Jean",
-    "birth": "1912-09-22T00:00:00Z",
-    "death": null
-  },
-  {
-    "node": "Acher, Henri",
-    "label": "Acher, Henri",
-    "birth": "1904-02-26T00:00:00Z",
-    "death": null
-  },
-  {
-    "node": "Acherbon, Herman",
-    "label": "Acherbon, Herman",
-    "birth": null,
-    "death": null
-  },
-  {
-    "node": "Acosta Ortiz, Bartolome",
-    "label": "Acosta Ortiz, Bartolome",
-    "birth": null,
-    "death": null
-  },
-  {
-    "node": "Acosta Pérez, Alberto",
-    "label": "Acosta Pérez, Alberto",
-    "birth": "1910-08-07T00:00:00Z",
-    "death": null
-  },
-  {
-    "node": "Acosta Sánchez, Francisco",
-    "label": "Acosta Sánchez, Francisco",
-    "birth": null,
-    "death": null
-  }
-]
-```
-
-> Same label = node ❓
-> Some present Null - is this from the original database or is the data lost? ☝️ > Miquel
->My review is: > **Proposed revision of the query and date modelling**  
->  
-> This second query reproduces the same conceptual mismatches identified in the previous case, and additionally reveals a data-quality problem in the handling of incomplete dates.  
->  
-> **1. Incorrect Wikidata query patterns**  
-> The query uses `rdf:type` and `P1476` in a way that is not aligned with the Wikidata RDF model. In Wikidata, class membership should be queried through **instance of (P31)**, typically as `wdt:P31`, whereas entity labels should be retrieved through `rdfs:label`. `P1476` denotes **title**, i.e. the published title of a work, and should not be used as the generic label of a person.  
->  
-> **2. Correct treatment of missing values**  
-> The presence of `null` values for birth or death dates appears to be acceptable when the source database does not provide those data. In such cases, the graph correctly reflects the absence of information.  
->  
-> **3. Incorrect completion of partial dates**  
-> A more serious issue arises when the source provides only a partial date, such as a year without month or day. In the current graph, these values are expanded into fully specified dates such as `1912-01-01`. This is semantically incorrect, because the original source does not assert either the month or the day. These components are therefore artificial and should not be added during transformation.  
->  
-> **4. Inappropriate use of `dateTime` values**  
-> In some cases, the graph further converts such incomplete dates into `dateTime` values (e.g. `1908-01-01T00:00:00Z`). This is also inappropriate, since it introduces a level of temporal precision — including time and timezone — that is completely absent from the source data.  
->  
-> **Recommendation**  
-> The query and the transformation pipeline should be revised so that:  
->  
-> * persons are retrieved with `wdt:P31 wd:Q5`,  
-> * entity labels are obtained through `rdfs:label`,  
-> * `P1476` is not used as a substitute for labels,  
-> * missing dates remain missing,  
-> * and partial dates are preserved as partial dates, without inventing month, day, or time components.  
->  
-> **Data-quality principle**  
-> The graph should preserve the precision of the source data rather than increase it artificially. When only a year is known, the RDF representation should encode that reduced precision explicitly, instead of converting it into a fully specified calendar date or date-time value.
-
-### People (Server)
-
-```Sparql
-curl --fail-with-body --silent --show-error \
-  -u "${UBXAT_USER:?Set UBXAT_USER}:${UBXAT_PASSWORD:?Set UBXAT_PASSWORD}" \
-  -X POST "${UBXAT_SPARQL_ENDPOINT:-https://ubxat.peninsula.co/cognitive/api/v1/sparql}" \
-  -H 'Content-Type: application/json' \
-  -H 'Accept: application/json' \
-  -d '{
-    "query": "SELECT ?node ?label ?birth ?death WHERE { ?node <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.wikidata.org/entity/Q5> . ?node <http://www.wikidata.org/entity/P1476> ?label . OPTIONAL { ?node <http://www.wikidata.org/entity/P569> ?birth } OPTIONAL { ?node <http://www.wikidata.org/entity/P570> ?death } } ORDER BY ?label LIMIT 30",
-    "format": "json"
-  }'
-```
-
-#### Results:
-```json
-STATUS: 500
-Internal Server Error
-```
+### Objective-based interpretation (what works vs what does not)
 
 
-### Mass graves (UI)
-```Sparql
-SELECT ?node ?label ?location
-WHERE {
-  ?node <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.wikidata.org/entity/Q108163> .
-  ?node <http://www.wikidata.org/entity/P1476> ?label .
-  OPTIONAL { ?node <http://www.wikidata.org/entity/P131> ?location }
-}
-ORDER BY ?label
-LIMIT 30
-```
 
-#### Response with limit
-```json
-[
-  {
-    "node": "A Tocar Del Cementiri De Sant Romà D'abella",
-    "label": "A Tocar Del Cementiri De Sant Romà D'abella",
-    "location": "Spain"
-  },
-  {
-    "node": "A Tocar Del Cementiri De Sant Romà D'abella",
-    "label": "A Tocar Del Cementiri De Sant Romà D'abella",
-    "location": "Lleida"
-  },
-  {
-    "node": "A Tocar Del Cementiri De Sant Romà D'abella",
-    "label": "A Tocar Del Cementiri De Sant Romà D'abella",
-    "location": "Sant Romà d'Abella"
-  },
-  {
-    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "location": "Catalunya"
-  },
-  {
-    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "location": "Spain"
-  },
-  {
-    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "location": "Barcelona"
-  },
-  {
-    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "location": "Sant Feliu de Llobregat"
-  },
-  {
-    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "location": "Baix Llobregat"
-  },
-  {
-    "node": "Aljub Al Soleràs",
-    "label": "Aljub Al Soleràs",
-    "location": "Spain"
-  },
-  {
-    "node": "Aljub Al Soleràs",
-    "label": "Aljub Al Soleràs",
-    "location": "Lleida"
-  },
-  {
-    "node": "Aljub Al Soleràs",
-    "label": "Aljub Al Soleràs",
-    "location": "El Soleràs"
-  },
-  {
-    "node": "Antic Camí De Llanera",
-    "label": "Antic Camí De Llanera",
-    "location": "Llobera"
-  },
-  {
-    "node": "Aqüeducte del Collet",
-    "label": "Aqüeducte del Collet",
-    "location": "Barcelona"
-  },
-  {
-    "node": "Aqüeducte del Collet",
-    "label": "Aqüeducte del Collet",
-    "location": "Guardiola de Berguedà"
-  },
-  {
-    "node": "Aulivar Del Civit",
-    "label": "Aulivar Del Civit",
-    "location": "Spain"
-  },
-  {
-    "node": "Aulivar Del Civit",
-    "label": "Aulivar Del Civit",
-    "location": "Lleida"
-  },
-  {
-    "node": "Aulivar Del Civit",
-    "label": "Aulivar Del Civit",
-    "location": "El Cogul"
-  },
-  {
-    "node": "Aulivarets De Vespella De Gaià",
-    "label": "Aulivarets De Vespella De Gaià",
-    "location": "Spain"
-  },
-  {
-    "node": "Aulivarets De Vespella De Gaià",
-    "label": "Aulivarets De Vespella De Gaià",
-    "location": "Vespella de Gaià"
-  },
-  {
-    "node": "Aumaec",
-    "label": "Aumaec",
-    "location": null
-  },
-  {
-    "node": "Avenc De La Figuerota. Puig Francàs",
-    "label": "Avenc De La Figuerota. Puig Francàs",
-    "location": "Tarragona"
-  },
-  {
-    "node": "Avenc De La Figuerota. Puig Francàs",
-    "label": "Avenc De La Figuerota. Puig Francàs",
-    "location": "Spain"
-  },
-  {
-    "node": "Avenc De La Figuerota. Puig Francàs",
-    "label": "Avenc De La Figuerota. Puig Francàs",
-    "location": "El Montmell"
-  },
-  {
-    "node": "Bancal Del Panser",
-    "label": "Bancal Del Panser",
-    "location": "Spain"
-  },
-  {
-    "node": "Bancal Del Panser",
-    "label": "Bancal Del Panser",
-    "location": "Lleida"
-  },
-  {
-    "node": "Bancal Del Panser",
-    "label": "Bancal Del Panser",
-    "location": "El Cogul"
-  },
-  {
-    "node": "Bancal de l'Anton",
-    "label": "Bancal de l'Anton",
-    "location": "Spain"
-  },
-  {
-    "node": "Bancal de l'Anton",
-    "label": "Bancal de l'Anton",
-    "location": "Lleida"
-  },
-  {
-    "node": "Bancal de l'Anton",
-    "label": "Bancal de l'Anton",
-    "location": "El Cogul"
-  },
-  {
-    "node": "Banyadé: Solana Del Pas Del Pi",
-    "label": "Banyadé: Solana Del Pas Del Pi",
-    "location": "Spain"
-  }
-]
-```
+## Final ingestion validation block (3 databases + mapping) - inconsistency analysis by objective
 
-Response without limit
-```json
-[
-  {
-    "node": "A Tocar Del Cementiri De Sant Romà D'abella",
-    "label": "A Tocar Del Cementiri De Sant Romà D'abella",
-    "location": "Spain"
-  },
-  {
-    "node": "A Tocar Del Cementiri De Sant Romà D'abella",
-    "label": "A Tocar Del Cementiri De Sant Romà D'abella",
-    "location": "Lleida"
-  },
-  {
-    "node": "A Tocar Del Cementiri De Sant Romà D'abella",
-    "label": "A Tocar Del Cementiri De Sant Romà D'abella",
-    "location": "Sant Romà d'Abella"
-  },
-  {
-    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "location": "Catalunya"
-  },
-  {
-    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "location": "Spain"
-  },
-  {
-    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "location": "Barcelona"
-  },
-  {
-    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "location": "Sant Feliu de Llobregat"
-  },
-  {
-    "node": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "label": "Al Costat Del Cementiri De Sant Feliu De Llobregat",
-    "location": "Baix Llobregat"
-  },
-  {
-    "node": "Aljub Al Soleràs",
-    "label": "Aljub Al Soleràs",
-    "location": "Spain"
-  },
-  {
-    "node": "Aljub Al Soleràs",
-    "label": "Aljub Al Soleràs",
-    "location": "Lleida"
-  },
-  {
-    "node": "Aljub Al Soleràs",
-    "label": "Aljub Al Soleràs",
-    "location": "El Soleràs"
-  },
-  {
-    "node": "Antic Camí De Llanera",
-    "label": "Antic Camí De Llanera",
-    "location": "Llobera"
-  },
-  {
-    "node": "Aqüeducte del Collet",
-    "label": "Aqüeducte del Collet",
-    "location": "Barcelona"
-  },
-  {
-    "node": "Aqüeducte del Collet",
-    "label": "Aqüeducte del Collet",
-    "location": "Guardiola de Berguedà"
-  },
-  {
-    "node": "Aulivar Del Civit",
-    "label": "Aulivar Del Civit",
-    "location": "Spain"
-  },
-  {
-    "node": "Aulivar Del Civit",
-    "label": "Aulivar Del Civit",
-    "location": "Lleida"
-  },
-  {
-    "node": "Aulivar Del Civit",
-    "label": "Aulivar Del Civit",
-    "location": "El Cogul"
-  },
-  {
-    "node": "Aulivarets De Vespella De Gaià",
-    "label": "Aulivarets De Vespella De Gaià",
-    "location": "Spain"
-  },
-  {
-    "node": "Aulivarets De Vespella De Gaià",
-    "label": "Aulivarets De Vespella De Gaià",
-    "location": "Vespella de Gaià"
-  },
-  {
-    "node": "Aumaec",
-    "label": "Aumaec",
-    "location": null
-  },
-  {
-    "node": "Avenc De La Figuerota. Puig Francàs",
-    "label": "Avenc De La Figuerota. Puig Francàs",
-    "location": "Tarragona"
-  },
-  {
-    "node": "Avenc De La Figuerota. Puig Francàs",
-    "label": "Avenc De La Figuerota. Puig Francàs",
-    "location": "Spain"
-  },
-  {
-    "node": "Avenc De La Figuerota. Puig Francàs",
-    "label": "Avenc De La Figuerota. Puig Francàs",
-    "location": "El Montmell"
-  },
-  {
-    "node": "Bancal Del Panser",
-    "label": "Bancal Del Panser",
-    "location": "Spain"
-  },
-  {
-    "node": "Bancal Del Panser",
-    "label": "Bancal Del Panser",
-    "location": "Lleida"
-  },
-  {
-    "node": "Bancal Del Panser",
-    "label": "Bancal Del Panser",
-    "location": "El Cogul"
-  },
-  {
-    "node": "Bancal de l'Anton",
-    "label": "Bancal de l'Anton",
-    "location": "Spain"
-  },
-  {
-    "node": "Bancal de l'Anton",
-    "label": "Bancal de l'Anton",
-    "location": "Lleida"
-  },
-  {
-    "node": "Bancal de l'Anton",
-    "label": "Bancal de l'Anton",
-    "location": "El Cogul"
-  },
-  {
-    "node": "Banyadé: Solana Del Pas Del Pi",
-    "label": "Banyadé: Solana Del Pas Del Pi",
-    "location": "Spain"
-  },
-  {
-    "node": "Banyadé: Solana Del Pas Del Pi",
-    "label": "Banyadé: Solana Del Pas Del Pi",
-    "location": "Conca de Dalt"
-  },
-  {
-    "node": "Barranc De Torrenova",
-    "label": "Barranc De Torrenova",
-    "location": "Vilalba dels Arcs"
-  },
-  {
-    "node": "Barranc de la Call",
-    "label": "Barranc de la Call",
-    "location": "Spain"
-  },
-  {
-    "node": "Barranc de la Call",
-    "label": "Barranc de la Call",
-    "location": "Isona i Conca Dellà"
-  },
-  {
-    "node": "Bordes De Cabrils",
-    "label": "Bordes De Cabrils",
-    "location": "Spain"
-  },
-  {
-    "node": "Bordes De Cabrils",
-    "label": "Bordes De Cabrils",
-    "location": "Lleida"
-  },
-  {
-    "node": "Bordes De Cabrils",
-    "label": "Bordes De Cabrils",
-    "location": "Farrera"
-  },
-  {
-    "node": "Bordes De Tressó",
-    "label": "Bordes De Tressó",
-    "location": "Spain"
-  },
-  {
-    "node": "Bordes De Tressó",
-    "label": "Bordes De Tressó",
-    "location": "Lleida"
-  },
-  {
-    "node": "Bordes De Tressó",
-    "label": "Bordes De Tressó",
-    "location": "Farrera"
-  },
-  {
-    "node": "Bosc I Trinxeres Del Coll De Ban",
-    "label": "Bosc I Trinxeres Del Coll De Ban",
-    "location": "Bassella"
-  },
-  {
-    "node": "Ca La Maxina (Torregassa)",
-    "label": "Ca La Maxina (Torregassa)",
-    "location": "Tarragona"
-  },
-  {
-    "node": "Ca La Maxina (Torregassa)",
-    "label": "Ca La Maxina (Torregassa)",
-    "location": "Spain"
-  },
-  {
-    "node": "Ca La Maxina (Torregassa)",
-    "label": "Ca La Maxina (Torregassa)",
-    "location": "Sant Jaume dels Domenys"
-  },
-  {
-    "node": "Cabana De L'agnès",
-    "label": "Cabana De L'agnès",
-    "location": "Spain"
-  },
-  {
-    "node": "Cabana De L'agnès",
-    "label": "Cabana De L'agnès",
-    "location": "Lleida"
-  },
-  {
-    "node": "Cabana De L'agnès",
-    "label": "Cabana De L'agnès",
-    "location": "L'Albagés"
-  },
-  {
-    "node": "Cal Corretger",
-    "label": "Cal Corretger",
-    "location": "Spain"
-  },
-  {
-    "node": "Cal Corretger",
-    "label": "Cal Corretger",
-    "location": "Santa Susanna"
-  },
-  {
-    "node": "Cal Trepat",
-    "label": "Cal Trepat",
-    "location": "Spain"
-  },
-  {
-    "node": "Cal Trepat",
-    "label": "Cal Trepat",
-    "location": "Lleida"
-  },
-  {
-    "node": "Cal Trepat",
-    "label": "Cal Trepat",
-    "location": "Tàrrega"
-  },
-  {
-    "node": "Camp De La Pona",
-    "label": "Camp De La Pona",
-    "location": "Spain"
-  },
-  {
-    "node": "Camp De La Pona",
-    "label": "Camp De La Pona",
-    "location": "Lleida"
-  },
-  {
-    "node": "Camp De La Pona",
-    "label": "Camp De La Pona",
-    "location": "Montellà i Martinet"
-  },
-  {
-    "node": "Camp De Treball Núm. 2 De L’hospitalet De L’infant.",
-    "label": "Camp De Treball Núm. 2 De L’hospitalet De L’infant.",
-    "location": "Spain"
-  },
-  {
-    "node": "Camp De Treball Núm. 2 De L’hospitalet De L’infant.",
-    "label": "Camp De Treball Núm. 2 De L’hospitalet De L’infant.",
-    "location": "Vandellòs I L'hospitalet De L'infant"
-  },
-  {
-    "node": "Camp Dels Morts De La Casagolda",
-    "label": "Camp Dels Morts De La Casagolda",
-    "location": "Spain"
-  },
-  {
-    "node": "Camp Dels Morts De La Casagolda",
-    "label": "Camp Dels Morts De La Casagolda",
-    "location": "Lleida"
-  },
-  {
-    "node": "Camp Dels Morts De La Casagolda",
-    "label": "Camp Dels Morts De La Casagolda",
-    "location": "Castellar de la Ribera"
-  },
-  {
-    "node": "Camp Malacara",
-    "label": "Camp Malacara",
-    "location": "Spain"
-  },
-  {
-    "node": "Camp Malacara",
-    "label": "Camp Malacara",
-    "location": "Lleida"
-  },
-  {
-    "node": "Camp Malacara",
-    "label": "Camp Malacara",
-    "location": "Tarrés"
-  },
-  {
-    "node": "Camí De L'Hort D'En Tona - Bòbila Del Sogas",
-    "label": "Camí De L'Hort D'En Tona - Bòbila Del Sogas",
-    "location": "Spain"
-  },
-  {
-    "node": "Camí De L'Hort D'En Tona - Bòbila Del Sogas",
-    "label": "Camí De L'Hort D'En Tona - Bòbila Del Sogas",
-    "location": "Vilafranca del Penedès"
-  },
-  {
-    "node": "Camí De La Font De Conill. Cabra Del Camp",
-    "label": "Camí De La Font De Conill. Cabra Del Camp",
-    "location": "Tarragona"
-  },
-  {
-    "node": "Camí De La Font De Conill. Cabra Del Camp",
-    "label": "Camí De La Font De Conill. Cabra Del Camp",
-    "location": "Spain"
-  },
-  {
-    "node": "Camí De La Font De Conill. Cabra Del Camp",
-    "label": "Camí De La Font De Conill. Cabra Del Camp",
-    "location": "Cabra del Camp"
-  },
-  {
-    "node": "Camí De Les Eres (Cometes).",
-    "label": "Camí De Les Eres (Cometes).",
-    "location": "Tarragona"
-  },
-  {
-    "node": "Camí De Les Eres (Cometes).",
-    "label": "Camí De Les Eres (Cometes).",
-    "location": "Spain"
-  },
-  {
-    "node": "Camí De Les Eres (Cometes).",
-    "label": "Camí De Les Eres (Cometes).",
-    "location": "Corbera d'Ebre"
-  },
-  {
-    "node": "Camí Fondo De Torres De Segre (Pala De La Gemma)",
-    "label": "Camí Fondo De Torres De Segre (Pala De La Gemma)",
-    "location": "Soses"
-  },
-  {
-    "node": "Camí Nou Del Mas De Galofre",
-    "label": "Camí Nou Del Mas De Galofre",
-    "location": "Tarragona"
-  },
-  {
-    "node": "Camí Nou Del Mas De Galofre",
-    "label": "Camí Nou Del Mas De Galofre",
-    "location": "Spain"
-  },
-  {
-    "node": "Camí Nou Del Mas De Galofre",
-    "label": "Camí Nou Del Mas De Galofre",
-    "location": "L'Albiol"
-  },
-  {
-    "node": "Camí Vell De Falset",
-    "label": "Camí Vell De Falset",
-    "location": "Spain"
-  },
-  {
-    "node": "Camí Vell De Falset",
-    "label": "Camí Vell De Falset",
-    "location": "Gratallops"
-  },
-  {
-    "node": "Camí Vell De La Pobla De Massaluca",
-    "label": "Camí Vell De La Pobla De Massaluca",
-    "location": "Tarragona"
-  },
-  {
-    "node": "Camí Vell De La Pobla De Massaluca",
-    "label": "Camí Vell De La Pobla De Massaluca",
-    "location": "Spain"
-  },
-  {
-    "node": "Camí Vell De La Pobla De Massaluca",
-    "label": "Camí Vell De La Pobla De Massaluca",
-    "location": "Vilalba dels Arcs"
-  },
-  {
-    "node": "Camí de les Monges (II)",
-    "label": "Camí de les Monges (II)",
-    "location": "Spain"
-  },
-  {
-    "node": "Camí de les Monges (II)",
-    "label": "Camí de les Monges (II)",
-    "location": "Barcelona"
-  },
-  {
-    "node": "Camí de les Monges (II)",
-    "label": "Camí de les Monges (II)",
-    "location": "Ullastrell"
-  },
-  {
-    "node": "Can Carous",
-    "label": "Can Carous",
-    "location": "Spain"
-  },
-  {
-    "node": "Can Carous",
-    "label": "Can Carous",
-    "location": "Barcelona"
-  },
-  {
-    "node": "Can Carous",
-    "label": "Can Carous",
-    "location": "Gurb"
-  },
-  {
-    "node": "Can Carreres",
-    "label": "Can Carreres",
-    "location": "Spain"
-  },
-  {
-    "node": "Can Carreres",
-    "label": "Can Carreres",
-    "location": "Rubí"
-  },
-  {
-    "node": "Can Maçana",
-    "label": "Can Maçana",
-    "location": "Barcelona"
-  },
-  {
-    "node": "Can Maçana",
-    "label": "Can Maçana",
-    "location": "El Bruc"
-  },
-  {
-    "node": "Cantallops (vinyes a tocar de la N-340)",
-    "label": "Cantallops (vinyes a tocar de la N-340)",
-    "location": "Spain"
-  },
-  {
-    "node": "Cantallops (vinyes a tocar de la N-340)",
-    "label": "Cantallops (vinyes a tocar de la N-340)",
-    "location": "Barcelona"
-  },
-  {
-    "node": "Cantallops (vinyes a tocar de la N-340)",
-    "label": "Cantallops (vinyes a tocar de la N-340)",
-    "location": "Subirats"
-  },
-  {
-    "node": "Carbonelles",
-    "label": "Carbonelles",
-    "location": "Spain"
-  },
-  {
-    "node": "Carbonelles",
-    "label": "Carbonelles",
-    "location": "Lleida"
-  },
-  {
-    "node": "Carbonelles",
-    "label": "Carbonelles",
-    "location": "Torrebesses"
-  },
-  {
-    "node": "Casa Blanca, creu de ferro de Bellprat",
-    "label": "Casa Blanca, creu de ferro de Bellprat",
-    "location": "Spain"
-  },
-  {
-    "node": "Casa Blanca, creu de ferro de Bellprat",
-    "label": "Casa Blanca, creu de ferro de Bellprat",
-    "location": "Barcelona"
-  },
-  {
-    "node": "Casa Blanca, creu de ferro de Bellprat",
-    "label": "Casa Blanca, creu de ferro de Bellprat",
-    "location": "Bellprat"
-  },
-  {
-    "node": "Casanova De Clarà",
-    "label": "Casanova De Clarà",
-    "location": "Spain"
-  },
-  {
-    "node": "Casanova De Clarà",
-    "label": "Casanova De Clarà",
-    "location": "Lleida"
-  },
-  {
-    "node": "Casanova De Clarà",
-    "label": "Casanova De Clarà",
-    "location": "Castellar de la Ribera"
-  },
-  {
-    "node": "Caseta D'en Codolà",
-    "label": "Caseta D'en Codolà",
-    "location": "Spain"
-  },
-  {
-    "node": "Caseta D'en Codolà",
-    "label": "Caseta D'en Codolà",
-    "location": "Girona"
-  },
-  {
-    "node": "Caseta D'en Codolà",
-    "label": "Caseta D'en Codolà",
-    "location": "Cassà de la Selva"
-  },
-  {
-    "node": "Caseta De Peons Ferroviaris",
-    "label": "Caseta De Peons Ferroviaris",
-    "location": "Tarragona"
-  },
-  {
-    "node": "Caseta De Peons Ferroviaris",
-    "label": "Caseta De Peons Ferroviaris",
-    "location": "Spain"
-  },
-  {
-    "node": "Caseta De Peons Ferroviaris",
-    "label": "Caseta De Peons Ferroviaris",
-    "location": "Móra la Nova"
-  },
-  {
-    "node": "Caseta de peons caminers de Guialmons. Les Piles",
-    "label": "Caseta de peons caminers de Guialmons. Les Piles",
-    "location": "Spain"
-  },
-  {
-    "node": "Caseta de peons caminers de Guialmons. Les Piles",
-    "label": "Caseta de peons caminers de Guialmons. Les Piles",
-    "location": "Guialmons"
-  },
-  {
-    "node": "Cementeri de Montardit d'Enviny",
-    "label": "Cementeri de Montardit d'Enviny",
-    "location": "Spain"
-  },
-  {
-    "node": "Cementeri de Montardit d'Enviny",
-    "label": "Cementeri de Montardit d'Enviny",
-    "location": "Sort"
-  },
-  {
-    "node": "Cementir",
-    "label": "Cementir",
-    "location": null
-  },
-  {
-    "node": "Cementiri  Vell de Vimbodí. Soldats de la 13a Brigada Internacional.",
-    "label": "Cementiri  Vell de Vimbodí. Soldats de la 13a Brigada Internacional.",
-    "location": "Spain"
-  },
-  {
-    "node": "Cementiri  Vell de Vimbodí. Soldats de la 13a Brigada Internacional.",
-    "label": "Cementiri  Vell de Vimbodí. Soldats de la 13a Brigada Internacional.",
-    "location": "Vimbodí i Poblet"
-  },
-  {
-    "node": "Cementiri Ampolla",
-    "label": "Cementiri Ampolla",
-    "location": "Spain"
-  },
-  {
-    "node": "Cementiri Ampolla",
-    "label": "Cementiri Ampolla",
-    "location": "L'Ampolla"
-  },
-  {
-    "node": "Cementiri Antic D'almacelles",
-    "label": "Cementiri Antic D'almacelles",
-    "location": "Spain"
-  },
-  {
-    "node": "Cementiri Antic D'almacelles",
-    "label": "Cementiri Antic D'almacelles",
-    "location": "Lleida"
-  },
-  {
-    "node": "Cementiri Antic D'almacelles",
-    "label": "Cementiri Antic D'almacelles",
-    "location": "Almacelles"
-  },
-  {
-    "node": "Cementiri Balaguer. Fossa Dels 19",
-    "label": "Cementiri Balaguer. Fossa Dels 19",
-    "location": "Balaguer"
-  },
-  {
-    "node": "Cementiri Bellmunt Del Priorat",
-    "label": "Cementiri Bellmunt Del Priorat",
-    "location": "Tarragona"
-  },
-  {
-    "node": "Cementiri Bellmunt Del Priorat",
-    "label": "Cementiri Bellmunt Del Priorat",
-    "location": "Spain"
-  },
-  {
-    "node": "Cementiri Bellmunt Del Priorat",
-    "label": "Cementiri Bellmunt Del Priorat",
-    "location": "Bellmunt del Priorat"
-  },
-  {
-    "node": "Cementiri D'Arenys De Mar",
-    "label": "Cementiri D'Arenys De Mar",
-    "location": "Spain"
-  },
-  {
-    "node": "Cementiri D'Arenys De Mar",
-    "label": "Cementiri D'Arenys De Mar",
-    "location": "Barcelona"
-  },
-  {
-    "node": "Cementiri D'Arenys De Mar",
-    "label": "Cementiri D'Arenys De Mar",
-    "location": "Arenys de Mar"
-  },
-  {
-    "node": "Cementiri D'Arenys De Munt",
-    "label": "Cementiri D'Arenys De Munt",
-    "location": "Spain"
-  },
-  {
-    "node": "Cementiri D'Arenys De Munt",
-    "label": "Cementiri D'Arenys De Munt",
-    "location": "Barcelona"
-  },
-  {
-    "node": "Cementiri D'Arenys De Munt",
-    "label": "Cementiri D'Arenys De Munt",
-    "location": "Arenys de Munt"
-  },
-  {
-    "node": "Cementiri D'Es Bòrdes",
-    "label": "Cementiri D'Es Bòrdes",
-    "location": "Spain"
-  },
-  {
-    "node": "Cementiri D'Es Bòrdes",
-    "label": "Cementiri D'Es Bòrdes",
-    "location": "Es Bòrdes"
-  },
-  {
-    "node": "Cementiri D'Estaràs",
-    "label": "Cementiri D'Estaràs",
-    "location": "Spain"
-  },
-  {
-    "node": "Cementiri D'Estaràs",
-    "label": "Cementiri D'Estaràs",
-    "location": "Lleida"
-  },
-  {
-    "node": "Cementiri D'Estaràs",
-    "label": "Cementiri D'Estaràs",
-    "location": "Estaràs"
-  },
-  {
-    "node": "Cementiri D'alcanó",
-    "label": "Cementiri D'alcanó",
-    "location": "Spain"
-  },
-  {
-    "node": "Cementiri D'alcanó",
-    "label": "Cementiri D'alcanó",
-    "location": "Lleida"
-  },
-  {
-    "node": "Cementiri D'alcanó",
-    "label": "Cementiri D'alcanó",
-    "location": "Alcanó"
-  },
-  {
-    "node": "Cementiri D'alcover. Ossera",
-    "label": "Cementiri D'alcover. Ossera",
-    "location": "Tarragona"
-  },
-  {
-    "node": "Cementiri D'alcover. Ossera",
-    "label": "Cementiri D'alcover. Ossera",
-    "location": "Spain"
-  },
-  {
-    "node": "Cementiri D'alcover. Ossera",
-    "label": "Cementiri D'alcover. Ossera",
-    "location": "Alcover"
-  },
-  {
-    "node": "Cementiri D'alentorn. Enterrament De Vicente Boquera",
-    "label": "Cementiri D'alentorn. Enterrament De Vicente Boquera",
-    "location": "Spain"
-  },
-  {
-    "node": "Cementiri D'alentorn. Enterrament De Vicente Boquera",
-    "label": "Cementiri D'alentorn. Enterrament De Vicente Boquera",
-    "location": "Alentorn"
-  },
-  {
-    "node": "Cementiri D'almenar",
-    "label": "Cementiri D'almenar",
-    "location": "Almenar"
-  },
-  {
+The `A1/A2/A3/B1/C1/X1/X2` validation block is currently affected by a systemic execution inconsistency: the same objective fails differently across execution paths (Platform often `500`, Server API mostly `404`, and Cypher alternating `500`/`404`). Because no successful payload is returned in this block, the expected data-quality checks are not empirically verifiable in this run.
+
+- **A1 (three-source footprint present)**:
+  - **Expected evidence**: non-zero counts for `cultura_y_censura`, `fosas_comunes`, and `sidbrint`.
+  - **Observed inconsistency**: Cypher/Platform fail with `500`, Server fails with `404`; no sourceTag distribution available.
+  - **Data inconsistency conclusion**: **coverage inconsistency cannot be measured** (missing evidence, not confirmed absence).
+
+- **A2 (mass-grave required mapped fields completeness)**:
+  - **Expected evidence**: coherent counts for `totalMassGraves`, `withName`, `withCountry`, `withAdminLocation`.
+  - **Observed inconsistency**: Platform `500`, Server `404`, Cypher `404`.
+  - **Data inconsistency conclusion**: **field-completeness gaps cannot be quantified** (no returned aggregates).
+
+- **A3 (mass-grave coordinate integrity)**:
+  - **Expected evidence**: list/count of malformed `P625` literals.
+  - **Observed inconsistency**: Platform `500`, Server `404`, Cypher `404`.
+  - **Data inconsistency conclusion**: **coordinate-quality anomalies cannot be confirmed nor ruled out**.
+
+- **B1 (SIDBRINT person integrity)**:
+  - **Expected evidence**: counts for persons with label and with birth/death marker.
+  - **Observed inconsistency**: Platform `500`, Server `404`, Cypher `404`.
+  - **Data inconsistency conclusion**: **identity/temporal mapping completeness remains unverified**.
+
+- **C1 (Cultura y censura document integrity)**:
+  - **Expected evidence**: `totalDocuments` vs `withTitle`.
+  - **Observed inconsistency**: Platform `500`, Server `404`, Cypher `404`.
+  - **Data inconsistency conclusion**: **document metadata completeness is inconclusive**.
+
+- **X1 (cross-source duplicate candidates by normalized title)**:
+  - **Expected evidence**: repeated normalized labels with `nodes > 1`.
+  - **Observed inconsistency**: Platform `500`, Server `404`, Cypher `404`.
+  - **Data inconsistency conclusion**: **duplicate-risk cannot be assessed** in this run.
+
+- **X2 (type conflict per entity / merge-error signal)**:
+  - **Expected evidence**: entities with unusually high type multiplicity.
+  - **Observed inconsistency**: Platform `500`, Server `404`, Cypher `404`.
+  - **Data inconsistency conclusion**: **merge/type-conflict anomalies cannot be tested**.
+
+Net interpretation for this block: the dominant inconsistency is **operational non-reproducibility across query paths**, which prevents objective-level data validation. Therefore, current `Final ingestion validation` outcomes should be marked **inconclusive due to execution instability**, not interpreted as confirmed mapping/data failures.
+
+## Searches compared
+
+| Objective          | task                                  | Cypher                     | SPARQL                                | Server |
+| ------------------ | ------------------------------------- | -------------------------- | ------------------------------------- | ------ |
+| 1. SELECT          | Triple-pattern retrieval (`?s ?p ?o`) | Success                    | Mixed (`timeout` first, then success) | `500`  |
+| 2. FILTER          | String filter (`brigadista`)          | Success (`[]`, no matches) | `500`                                 | `500`  |
+| 3. LIMIT/OFFSET    | Ordered pagination                    | Success                    | `timeout`                             | `404`  |
+| 4. ASK             | Existence checks                      | Success                    | Mixed (one `timeout`, one success)    | `404`  |
+| 5. COUNT (ext)     | Node/relationship counting            | Success                    | Failed (`timeout` / `500`)            | `404`  |
+| 6. CONSTRUCT       | Graph-shaped export                   | Success                    | `timeout`                             | `404`  |
+| 7. DESCRIBE        | Entity-centric inspection             | Success                    | Success (minimal payload)             | `404`  |
+| 8. FILTER (retest) | String filter (repeat block)          | Success (`[]`, no matches) | `500`                                 | `404`  |
+| 9. ORDER BY        | Stable sorting                        | `500`                      | `timeout`                             | `404`  |
+| 9b. GROUP BY       | Type distribution                     | Success                    | Empty result block                    | `404`  |
+| 10. AGGREGATIONS   | Multi-metric aggregation              | Empty result block         | Empty result block                    | `404`  |
+
+
+## Server access assessment (live re-check)
+
+A live replay of all `Server (SPARQL via API)` blocks showed mixed but degraded operability: previous manual re-checks recovered valid responses in selected queries (e.g., ASK/COUNT/GROUP BY/AGGREGATIONS), but the full sequential replay updated in this document ended with `0/13` successful responses (`500` in the first blocks and then mostly `404`). This indicates the endpoint is reachable but currently unstable or inconsistently routed/authenticated across requests, so server-side results should be treated as non-reproducible until backend configuration is stabilized.
+
+## Server queries that returned data (live checks)
+
+| Query block | Query intent | Status | Data recovered (preview) |
+|---|---|---|---|
+| 4. ASK queries (variant 1) | Generic existence check (`ASK WHERE { ?s ?p ?o }`) | `200` | `true` |
+| 5. COUNT queries (extended) - count nodes | Distinct node count | `200` | `count = 2867` |
+| 5. COUNT queries (extended) - count relationships | Relationship count | `200` | `count = 4482` |
+| 6. CONSTRUCT | Triple payload export | `200` | Rows returned (`subject`, `predicate`, `object`) |
+| GROUP BY | Count by type/label | `200` | `Person 1029`, `Document 724`, `MassGrave 492`, ... |
+| 10. AGGREGATIONS | Multi-metric totals | `200` | `nodeCount = 2890`, `relCount = 4482` |
+
+### Probable causes for missing results in other server queries
+
+- **Backend route/proxy instability**: repeated `404 page not found` in protocol/advanced suites suggests endpoint routing mismatch or intermittent gateway mapping.
+- **Server-side execution failures**: repeated `500 Internal Server Error` in SELECT/FILTER and early test blocks indicates query-handler crashes before returning payloads.
+- **Query translation limits**: failing blocks concentrate in operations that often require extra translation logic (`ORDER BY`, `DESCRIBE`, complex FILTER variants).
+- **Session/auth inconsistency across runs**: some manual checks returned `200`, but full sequential replay returned `0/13`, suggesting non-deterministic auth/routing context.
+- **Operational instability (non-reproducibility)**: contradictory outcomes over short intervals indicate unstable backend state rather than only query syntax errors.
+
+### Server query errors map
+
+| Block | Server query scope | Error |
+|---|---|---|
+| Test 0 | Main nodes / People / Mass graves | `STATUS: 500` (`Internal Server Error`) |
+| Test 1 | Total nodes | `STATUS: 500` (`Internal Server Error`) |
+| Test 2 | Total relationships | `STATUS: 500` (`Internal Server Error`) |
+| Test 3 | Nodes per label | `STATUS: 500` (`Internal Server Error`) |
+| Test 4 | Relationships per type | `STATUS: 500` (`Internal Server Error`) |
+| Test 5 | Node/relationship property diagnostics | `STATUS: 500` (`Internal Server Error`) |
+| Test 6 | Relationship property totals | `STATUS: 500` (`Internal Server Error`) |
+| 2. Final ingestion validation | A1, A2, A3, B1, C1, X1, X2 | `STATUS: 404` (`404 page not found`) |
+| SELECT/FILTER suite | SELECT, FILTER | `STATUS: 500` (`Internal Server Error`) |
+| Protocol/advanced suite | LIMIT/OFFSET, ASK, COUNT(ext), CONSTRUCT, DESCRIBE, FILTER, ORDER BY, GROUP BY, AGGREGATIONS | `STATUS: 404` (`404 page not found`) |
+
+
+
+
+
+## Cypher vs SPARQL data evaluation
+
+### Evidence-based comparison
+
+| Dimension | Cypher | SPARQL | Assessment |
+|---|---|---|---|
+| Query success rate (recorded blocks) | High in core blocks (SELECT, LIMIT/OFFSET, ASK, COUNT, CONSTRUCT, GROUP BY, DESCRIBE) with some failures (`ORDER BY`, empty AGGREGATIONS block) | Lower and unstable (timeouts/`500` in multiple blocks; one minimal DESCRIBE success; some empty result blocks) | **Cypher stronger** for reproducible execution in current environment |
+| Data completeness in returned payloads | Rich graph payloads and structured tabular outputs (e.g., CONSTRUCT, GROUP BY counts) | Often incomplete due to timeout/failure; when successful, payloads may be minimal | **Cypher stronger** for actionable data extraction |
+| Consistency across repeated intents | Generally consistent in successful blocks (counts and structure aligned internally) | Mixed behavior across equivalent intents (success in isolated checks, failures in many logged tests) | **Cypher stronger** for consistency |
+| Operational robustness | Some degradation but still usable for most analytical checks | Frequent timeout/failure under comparable operations | **Cypher stronger** for robustness |
+
+### Interpreted result
+
+For this test corpus and run context, **Cypher is currently the primary reliable method** for data retrieval and validation. **SPARQL remains partially usable** but non-reproducible under several core/advanced operations, so SPARQL-derived conclusions should be treated as provisional unless revalidated after backend stabilization.
+
+### Minimal decision rule for next runs
+
+- Use **Cypher-first** for baseline metrics, ingestion validation, and curation diagnostics.
+- Use **SPARQL as confirmatory/parallel check** only where responses are stable.
+- Mark any SPARQL timeout/`500`/empty block as **inconclusive** (not negative evidence about data content).
