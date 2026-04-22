@@ -13026,6 +13026,8 @@ curl --fail-with-body --silent --show-error \
 ## Test 1 – Total number of nodes
 
 Objective: verify the global size of the graph at node level as a baseline control metric before any other evaluation.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 ### Cypher:
 
@@ -13120,6 +13122,8 @@ curl: (22) The requested URL returned error: 422
 ## Test 2 – Total number of relationships
 
 Objective: verify the global size of the graph at relationship/triple level and track growth or loss across runs.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 ### Cypher
 ```cypher
@@ -13168,6 +13172,8 @@ Internal Server Error
 
 ## Test 3 – Nodes per label (overview)
 Objective: identify the semantic classes present in the graph and confirm that expected node types are available.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 ### Cypher
 ```cypher
@@ -13255,6 +13261,8 @@ Internal Server Error%
 ```
 ## Test 4 – Relationships per type
 Objective: validate that key predicates exist and estimate their volume to detect missing or under-populated relations.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 ### Cypher
 ```cypher
@@ -13322,6 +13330,8 @@ curl --fail-with-body --silent --show-error \
 ### Query 1 - Node properties: list all keys and how many nodes have each
 
 Objective: measure metadata coverage across node attributes and identify sparse or overused properties.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 #### Cypher
 ```Cypher
@@ -13736,6 +13746,8 @@ Internal Server Error%
 ### Query 2 - Per relationship type: with vs. without properties
 
 Objective: check which relationship types preserve metadata and which are being stored as bare links.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 #### Cypher
 ```Cypher
@@ -13791,6 +13803,8 @@ Internal Server Error
 
 ### Query 3 - Relationships per label
 Objective: cross-check node-label and property co-occurrence to detect uneven modelling between entity classes.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 #### Cypher
 ```Cypher
@@ -13973,6 +13987,8 @@ Internal Server Error
 ### Query 1 - Count relationships with vs. without any properties (global)
 
 Objective: quantify how much relational context is encoded as properties versus only as edge existence.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 #### Cypher
 ```Cypher
@@ -14034,6 +14050,8 @@ Structure note: this test is mostly Neo4j-admin oriented. For checks that have n
 ### Query 1 - Show databases #neo4j5
 
 Objective: confirm target database context and avoid running diagnostics against the wrong environment.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: query/API response exceeded timeout window (performance or connectivity bottleneck).
 
 #### Cypher
 ```cypher
@@ -14107,6 +14125,8 @@ curl --fail-with-body --silent --show-error \
 ### Query 2 - Labels, relationship types, property keys (structural overview) #neo4j5
 
 Objective: obtain a high-level schema inventory to support quality and interoperability checks.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 #### Cypher
 ```cypher
@@ -14187,6 +14207,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 ### Query 3 - Node schema: which labels have which properties (with counts) #neo4j5
 
 Objective: inspect label-level property structure, expected datatypes, and mandatory flags for schema consistency.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -14272,6 +14294,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 ### Query 4 - All property keys registered in the database #neo4j5
 
 Objective: list the full attribute vocabulary and detect uncontrolled key proliferation.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: query/API response exceeded timeout window (performance or connectivity bottleneck).
 
 #### Cypher
 ```cypher
@@ -14338,6 +14362,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 ### Query 5 - Relationship schema: which relationship types have which properties #neo4j5
 
 Objective: verify relational schema consistency and check whether edge-level attributes follow a stable model.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -14422,6 +14448,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 
 Shows, for each label, which property keys appear and in how many nodes.
 Objective: evaluate completeness per entity type and find labels with weak metadata population.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -14482,6 +14510,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 
 Shows, for each relationship type, which property keys appear and in how many relationships.
 Objective: evaluate completeness per predicate type and identify relations missing descriptive metadata.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -14527,6 +14557,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 
 Useful to detect labels that only exist structurally and store no metadata fields.
 Objective: detect entity classes that may be semantically empty and require enrichment.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -14573,6 +14605,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 ### Query 9 - Relationship types without any properties
 
 Objective: detect predicate classes that may be too generic or insufficiently documented for analysis.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -14617,6 +14651,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 
 This gives an empirical summary of the values currently stored, beyond the schema procedures.
 Objective: validate real-world datatype usage and identify type drift for the same property key.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -14665,6 +14701,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 ### Query 11 - Observed value types for relationship properties
 
 Objective: validate edge-property datatype consistency and detect modelling anomalies across relation types.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -14717,6 +14755,8 @@ Purpose: validate that the three source databases (`Cultura y censura`, `fosas c
 ### Test A1 - Source footprint by provenance string
 
 Objective: verify that all three expected sources are present in the graph after full ingestion.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -14783,6 +14823,8 @@ STATUS: 404
 ### Test A2 - Fosas comunes required fields completeness
 
 Objective: validate required mapped fields (`name/title`, `country`, and at least one location field) for mass-grave entities.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -14849,6 +14891,8 @@ STATUS: 404
 ### Test A3 - Fosas comunes coordinate integrity (P625)
 
 Objective: detect mass-grave records with malformed coordinate literals.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -14906,6 +14950,8 @@ STATUS: 404
 ### Test B1 - SIDBRINT person integrity
 
 Objective: validate that person entities include core identity fields (label and at least one temporal marker).
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -14967,6 +15013,8 @@ STATUS: 404
 ### Test C1 - Cultura y censura document integrity
 
 Objective: verify document-class entities and minimal descriptive metadata.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -28029,6 +28077,8 @@ curl --fail-with-body --silent --show-error \
 ## Test 1 – Total number of nodes
 
 Objective: verify the global size of the graph at node level as a baseline control metric before any other evaluation.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 ### Cypher:
 
@@ -28123,6 +28173,8 @@ curl: (22) The requested URL returned error: 422
 ## Test 2 – Total number of relationships
 
 Objective: verify the global size of the graph at relationship/triple level and track growth or loss across runs.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 ### Cypher
 ```cypher
@@ -28171,6 +28223,8 @@ Internal Server Error
 
 ## Test 3 – Nodes per label (overview)
 Objective: identify the semantic classes present in the graph and confirm that expected node types are available.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 ### Cypher
 ```cypher
@@ -28258,6 +28312,8 @@ Internal Server Error%
 ```
 ## Test 4 – Relationships per type
 Objective: validate that key predicates exist and estimate their volume to detect missing or under-populated relations.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 ### Cypher
 ```cypher
@@ -28336,6 +28392,8 @@ elenagomez@Elenas-MacBook-Pro Documents % curl --fail-with-body --silent --show-
 ### Query 1 - Node properties: list all keys and how many nodes have each
 
 Objective: measure metadata coverage across node attributes and identify sparse or overused properties.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 #### Cypher
 ```Cypher
@@ -28750,6 +28808,8 @@ Internal Server Error%
 ### Query 2 - Per relationship type: with vs. without properties
 
 Objective: check which relationship types preserve metadata and which are being stored as bare links.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 #### Cypher
 ```Cypher
@@ -28805,6 +28865,8 @@ Internal Server Error
 
 ### Query 3 - Relationships per label
 Objective: cross-check node-label and property co-occurrence to detect uneven modelling between entity classes.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 #### Cypher
 ```Cypher
@@ -28987,6 +29049,8 @@ Internal Server Error
 ### Query 1 - Count relationships with vs. without any properties (global)
 
 Objective: quantify how much relational context is encoded as properties versus only as edge existence.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 #### Cypher
 ```Cypher
@@ -29048,6 +29112,8 @@ Structure note: this test is mostly Neo4j-admin oriented. For checks that have n
 ### Query 1 - Show databases #neo4j5
 
 Objective: confirm target database context and avoid running diagnostics against the wrong environment.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: query/API response exceeded timeout window (performance or connectivity bottleneck).
 
 #### Cypher
 ```cypher
@@ -29117,6 +29183,8 @@ curl --fail-with-body --silent --show-error \
 ### Query 2 - Labels, relationship types, property keys (structural overview) #neo4j5
 
 Objective: obtain a high-level schema inventory to support quality and interoperability checks.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 #### Cypher
 ```cypher
@@ -29189,6 +29257,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 ### Query 3 - Node schema: which labels have which properties (with counts) #neo4j5
 
 Objective: inspect label-level property structure, expected datatypes, and mandatory flags for schema consistency.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -29256,6 +29326,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 ### Query 4 - All property keys registered in the database #neo4j5
 
 Objective: list the full attribute vocabulary and detect uncontrolled key proliferation.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: query/API response exceeded timeout window (performance or connectivity bottleneck).
 
 #### Cypher
 ```cypher
@@ -29320,6 +29392,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 ### Query 5 - Relationship schema: which relationship types have which properties #neo4j5
 
 Objective: verify relational schema consistency and check whether edge-level attributes follow a stable model.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -29387,6 +29461,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 
 Shows, for each label, which property keys appear and in how many nodes.
 Objective: evaluate completeness per entity type and find labels with weak metadata population.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -29447,6 +29523,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 
 Shows, for each relationship type, which property keys appear and in how many relationships.
 Objective: evaluate completeness per predicate type and identify relations missing descriptive metadata.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -29492,6 +29570,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 
 Useful to detect labels that only exist structurally and store no metadata fields.
 Objective: detect entity classes that may be semantically empty and require enrichment.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -29538,6 +29618,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 ### Query 9 - Relationship types without any properties
 
 Objective: detect predicate classes that may be too generic or insufficiently documented for analysis.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -29582,6 +29664,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 
 This gives an empirical summary of the values currently stored, beyond the schema procedures.
 Objective: validate real-world datatype usage and identify type drift for the same property key.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -29630,6 +29714,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 ### Query 11 - Observed value types for relationship properties
 
 Objective: validate edge-property datatype consistency and detect modelling anomalies across relation types.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -29682,6 +29768,8 @@ Purpose: validate that the three source databases (`Cultura y censura`, `fosas c
 ### Test A1 - Source footprint by provenance string
 
 Objective: verify that all three expected sources are present in the graph after full ingestion.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -29748,6 +29836,8 @@ STATUS: 404
 ### Test A2 - Fosas comunes required fields completeness
 
 Objective: validate required mapped fields (`name/title`, `country`, and at least one location field) for mass-grave entities.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -29814,6 +29904,8 @@ STATUS: 404
 ### Test A3 - Fosas comunes coordinate integrity (P625)
 
 Objective: detect mass-grave records with malformed coordinate literals.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -29871,6 +29963,8 @@ STATUS: 404
 ### Test B1 - SIDBRINT person integrity
 
 Objective: validate that person entities include core identity fields (label and at least one temporal marker).
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -29932,6 +30026,8 @@ STATUS: 404
 ### Test C1 - Cultura y censura document integrity
 
 Objective: verify document-class entities and minimal descriptive metadata.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -29986,6 +30082,8 @@ STATUS: 404
 ### Test X1 - Cross-source duplicate candidates by normalized title
 
 Objective: detect potential duplicate entities generated by multi-source ingest.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -30044,6 +30142,8 @@ STATUS: 404
 ### Test X2 - Type conflict check per entity
 
 Objective: detect nodes with unusually high class multiplicity (possible merge errors).
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -30103,6 +30203,8 @@ Purpose: evaluate whether gender/sex and social-economic signals are present and
 ### Test G1 - Sex/gender footprint (P21 and lexical variants)
 
 Objective: verify that sex/gender is explicitly represented and measurable in person-like entities.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: query/API response exceeded timeout window (performance or connectivity bottleneck).
 
 #### Cypher
 ```cypher
@@ -30218,6 +30320,8 @@ curl --fail-with-body --silent --show-error \
 ### Test G2 - Missing sex/gender coverage in person entities
 
 Objective: quantify person records lacking explicit gender/sex values (critical for bias-aware analysis).
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 #### Cypher
 ```cypher
@@ -30322,6 +30426,8 @@ curl --fail-with-body --silent --show-error \
 ### Test G3 - Occupation/profession coverage by gender proxy
 
 Objective: detect whether social/economic proxy fields (occupation/profession, e.g. `P106`) are unevenly populated across gender groups.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 #### Cypher
 ```cypher
@@ -30451,6 +30557,8 @@ curl --fail-with-body --silent --show-error \
 ### Test G4 - Social/economic-status vocabulary audit
 
 Objective: inventory properties/values related to social or economic status to check whether this dimension is represented in the integrated graph.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 #### Cypher
 ```cypher
@@ -30569,6 +30677,8 @@ curl --fail-with-body --silent --show-error \
 
 Cypher equivalent: match (subject)-[r]->(object) and return subject id, relationship type, object id.
 Objective: retrieve the minimal graph statement unit for structural inspection and downstream sampling.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 ##### Cypher
 ```cypher
@@ -30616,6 +30726,8 @@ Internal Server Error
 
 **String:** nodes whose label (name/title/text) contains a substring (case-insensitive).
 Objective: test semantic filtering capacity and verify retrieval precision for targeted terms.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 ##### Cypher
 ```cypher
@@ -30670,6 +30782,8 @@ Internal Server Error
 ## 3. LIMIT / OFFSET: result pagination
 
 Objective: test stable pagination and deterministic ordering for reproducible batches and UI navigation.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility.
 
 ##### Cypher
 ```cypher
@@ -30724,6 +30838,8 @@ STATUS: 404
 
 Returns one row with a boolean: does the pattern exist?
 Objective: validate fast existence checks for conditional workflows and rule triggers.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 ##### Cypher
 ```cypher
@@ -30774,6 +30890,8 @@ STATUS: 404
 #### 2. Basic ASK: e.g. “exists any MassGrave?”
 
 Objective: verify class-level existence checks for domain entities used in monitoring and alerts.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility.
 
 ##### Cypher
 ```cypher
@@ -30826,6 +30944,8 @@ STATUS: 404
 ## 5. COUNT queries (extended)
 
 Objective: validate aggregate consistency for core graph magnitudes and support monitoring dashboards with reproducible totals.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 #### 1. Custom COUNT syntax: COUNT(?variable)
 
@@ -30834,6 +30954,8 @@ Cypher equivalent: `count(n)` or `count(*)` for the bound variable / pattern.
 **Count all nodes:**
 
 Objective: compute entity cardinality for baseline comparisons between dataset versions.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 ##### Cypher
 ```cypher
@@ -30884,6 +31006,8 @@ STATUS: 404
 **Count relationships (triples):**
 
 Objective: compute assertion cardinality and detect unexpected relation inflation or loss.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility.
 
 ##### Cypher
 ```cypher
@@ -30931,6 +31055,8 @@ STATUS: 404
 
 Return a graph-shaped payload (equivalent to SPARQL CONSTRUCT): nodes + relationships as collections.
 Objective: verify graph reconstruction/export behavior for downstream visualization, interchange, or pipeline reuse.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 ##### Cypher
 ```cypher
@@ -30987,6 +31113,8 @@ STATUS: 404
 
 Describe one node by id: its properties and outgoing/incoming relationships (and neighbour ids).
 Objective: validate entity-centric inspection and provenance-style drill-down for debugging and curation workflows.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility.
 
 ##### Cypher
 ```cypher
@@ -31088,6 +31216,8 @@ STATUS: 404
 
 Sort results (e.g. by subject, then predicate, then object) and paginate with SKIP/LIMIT.
 Objective: ensure deterministic ordering so repeated runs return stable sequences for review and auditing.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 ##### Cypher
 ```cypher
@@ -31138,6 +31268,8 @@ STATUS: 404
 
 Group by node label and count nodes per type (no explicit GROUP BY; use WITH + aggregation).
 Objective: profile class distribution and detect imbalance across entity types.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 ##### Cypher
 ```cypher
@@ -31190,6 +31322,8 @@ STATUS: 404
 
 Count nodes, count relationships, or both in one response.
 Objective: validate multi-metric aggregation in a single query to reduce API calls and keep metrics synchronized.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 ##### Cypher
 ```cypher
@@ -31247,7 +31381,7 @@ STATUS: 404
 404 page not found
 ```
 
-# Summary
+# Summary 2
 ## Update - Test 7 (Database-level metadata) from latest run
 
 | Query | Cypher | SPARQL | Note |
@@ -44440,6 +44574,8 @@ curl --fail-with-body --silent --show-error \
 ## Test 1 – Total number of nodes
 
 Objective: verify the global size of the graph at node level as a baseline control metric before any other evaluation.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 ### Cypher:
 
@@ -44534,6 +44670,8 @@ curl: (22) The requested URL returned error: 422
 ## Test 2 – Total number of relationships
 
 Objective: verify the global size of the graph at relationship/triple level and track growth or loss across runs.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 ### Cypher
 ```cypher
@@ -44582,6 +44720,8 @@ Internal Server Error
 
 ## Test 3 – Nodes per label (overview)
 Objective: identify the semantic classes present in the graph and confirm that expected node types are available.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 ### Cypher
 ```cypher
@@ -44669,6 +44809,8 @@ Internal Server Error%
 ```
 ## Test 4 – Relationships per type
 Objective: validate that key predicates exist and estimate their volume to detect missing or under-populated relations.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 ### Cypher
 ```cypher
@@ -44747,6 +44889,8 @@ elenagomez@Elenas-MacBook-Pro Documents % curl --fail-with-body --silent --show-
 ### Query 1 - Node properties: list all keys and how many nodes have each
 
 Objective: measure metadata coverage across node attributes and identify sparse or overused properties.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 #### Cypher
 ```Cypher
@@ -45161,6 +45305,8 @@ Internal Server Error%
 ### Query 2 - Per relationship type: with vs. without properties
 
 Objective: check which relationship types preserve metadata and which are being stored as bare links.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 #### Cypher
 ```Cypher
@@ -45216,6 +45362,8 @@ Internal Server Error
 
 ### Query 3 - Relationships per label
 Objective: cross-check node-label and property co-occurrence to detect uneven modelling between entity classes.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 #### Cypher
 ```Cypher
@@ -45398,6 +45546,8 @@ Internal Server Error
 ### Query 1 - Count relationships with vs. without any properties (global)
 
 Objective: quantify how much relational context is encoded as properties versus only as edge existence.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 #### Cypher
 ```Cypher
@@ -45459,6 +45609,8 @@ Structure note: this test is mostly Neo4j-admin oriented. For checks that have n
 ### Query 1 - Show databases #neo4j5
 
 Objective: confirm target database context and avoid running diagnostics against the wrong environment.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: query/API response exceeded timeout window (performance or connectivity bottleneck).
 
 #### Cypher
 ```cypher
@@ -45528,6 +45680,8 @@ curl --fail-with-body --silent --show-error \
 ### Query 2 - Labels, relationship types, property keys (structural overview) #neo4j5
 
 Objective: obtain a high-level schema inventory to support quality and interoperability checks.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 #### Cypher
 ```cypher
@@ -45600,6 +45754,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 ### Query 3 - Node schema: which labels have which properties (with counts) #neo4j5
 
 Objective: inspect label-level property structure, expected datatypes, and mandatory flags for schema consistency.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -45667,6 +45823,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 ### Query 4 - All property keys registered in the database #neo4j5
 
 Objective: list the full attribute vocabulary and detect uncontrolled key proliferation.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: query/API response exceeded timeout window (performance or connectivity bottleneck).
 
 #### Cypher
 ```cypher
@@ -45731,6 +45889,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 ### Query 5 - Relationship schema: which relationship types have which properties #neo4j5
 
 Objective: verify relational schema consistency and check whether edge-level attributes follow a stable model.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -45798,6 +45958,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 
 Shows, for each label, which property keys appear and in how many nodes.
 Objective: evaluate completeness per entity type and find labels with weak metadata population.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -45858,6 +46020,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 
 Shows, for each relationship type, which property keys appear and in how many relationships.
 Objective: evaluate completeness per predicate type and identify relations missing descriptive metadata.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -45903,6 +46067,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 
 Useful to detect labels that only exist structurally and store no metadata fields.
 Objective: detect entity classes that may be semantically empty and require enrichment.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -45949,6 +46115,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 ### Query 9 - Relationship types without any properties
 
 Objective: detect predicate classes that may be too generic or insufficiently documented for analysis.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -45993,6 +46161,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 
 This gives an empirical summary of the values currently stored, beyond the schema procedures.
 Objective: validate real-world datatype usage and identify type drift for the same property key.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -46041,6 +46211,8 @@ curl --fail-with-body --silent --show-error   -u "${UBXAT_USER:?Set UBXAT_USER}:
 ### Query 11 - Observed value types for relationship properties
 
 Objective: validate edge-property datatype consistency and detect modelling anomalies across relation types.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 #### Cypher
 ```cypher
@@ -46093,6 +46265,8 @@ Purpose: validate that the three source databases (`Cultura y censura`, `fosas c
 ### Test A1 - Source footprint by provenance string
 
 Objective: verify that all three expected sources are present in the graph after full ingestion.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -46159,6 +46333,8 @@ STATUS: 404
 ### Test A2 - Fosas comunes required fields completeness
 
 Objective: validate required mapped fields (`name/title`, `country`, and at least one location field) for mass-grave entities.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -46225,6 +46401,8 @@ STATUS: 404
 ### Test A3 - Fosas comunes coordinate integrity (P625)
 
 Objective: detect mass-grave records with malformed coordinate literals.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -46282,6 +46460,8 @@ STATUS: 404
 ### Test B1 - SIDBRINT person integrity
 
 Objective: validate that person entities include core identity fields (label and at least one temporal marker).
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -46343,6 +46523,8 @@ STATUS: 404
 ### Test C1 - Cultura y censura document integrity
 
 Objective: verify document-class entities and minimal descriptive metadata.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -46397,6 +46579,8 @@ STATUS: 404
 ### Test X1 - Cross-source duplicate candidates by normalized title
 
 Objective: detect potential duplicate entities generated by multi-source ingest.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -46455,6 +46639,8 @@ STATUS: 404
 ### Test X2 - Type conflict check per entity
 
 Objective: detect nodes with unusually high class multiplicity (possible merge errors).
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -46514,6 +46700,8 @@ Purpose: evaluate whether gender/sex and social-economic signals are present and
 ### Test G1 - Sex/gender footprint (P21 and lexical variants)
 
 Objective: verify that sex/gender is explicitly represented and measurable in person-like entities.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: query/API response exceeded timeout window (performance or connectivity bottleneck).
 
 #### Cypher
 ```cypher
@@ -46629,6 +46817,8 @@ curl --fail-with-body --silent --show-error \
 ### Test G2 - Missing sex/gender coverage in person entities
 
 Objective: quantify person records lacking explicit gender/sex values (critical for bias-aware analysis).
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 #### Cypher
 ```cypher
@@ -46733,6 +46923,8 @@ curl --fail-with-body --silent --show-error \
 ### Test G3 - Occupation/profession coverage by gender proxy
 
 Objective: detect whether social/economic proxy fields (occupation/profession, e.g. `P106`) are unevenly populated across gender groups.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 #### Cypher
 ```cypher
@@ -46862,6 +47054,8 @@ curl --fail-with-body --silent --show-error \
 ### Test G4 - Social/economic-status vocabulary audit
 
 Objective: inventory properties/values related to social or economic status to check whether this dimension is represented in the integrated graph.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 #### Cypher
 ```cypher
@@ -46980,6 +47174,8 @@ curl --fail-with-body --silent --show-error \
 
 Cypher equivalent: match (subject)-[r]->(object) and return subject id, relationship type, object id.
 Objective: retrieve the minimal graph statement unit for structural inspection and downstream sampling.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 ##### Cypher
 ```cypher
@@ -47027,6 +47223,8 @@ Internal Server Error
 
 **String:** nodes whose label (name/title/text) contains a substring (case-insensitive).
 Objective: test semantic filtering capacity and verify retrieval precision for targeted terms.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 ##### Cypher
 ```cypher
@@ -47081,6 +47279,8 @@ Internal Server Error
 ## 3. LIMIT / OFFSET: result pagination
 
 Objective: test stable pagination and deterministic ordering for reproducible batches and UI navigation.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility.
 
 ##### Cypher
 ```cypher
@@ -47135,6 +47335,8 @@ STATUS: 404
 
 Returns one row with a boolean: does the pattern exist?
 Objective: validate fast existence checks for conditional workflows and rule triggers.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 ##### Cypher
 ```cypher
@@ -47185,6 +47387,8 @@ STATUS: 404
 #### 2. Basic ASK: e.g. “exists any MassGrave?”
 
 Objective: verify class-level existence checks for domain entities used in monitoring and alerts.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility.
 
 ##### Cypher
 ```cypher
@@ -47237,6 +47441,8 @@ STATUS: 404
 ## 5. COUNT queries (extended)
 
 Objective: validate aggregate consistency for core graph magnitudes and support monitoring dashboards with reproducible totals.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 #### 1. Custom COUNT syntax: COUNT(?variable)
 
@@ -47245,6 +47451,8 @@ Cypher equivalent: `count(n)` or `count(*)` for the bound variable / pattern.
 **Count all nodes:**
 
 Objective: compute entity cardinality for baseline comparisons between dataset versions.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 ##### Cypher
 ```cypher
@@ -47295,6 +47503,8 @@ STATUS: 404
 **Count relationships (triples):**
 
 Objective: compute assertion cardinality and detect unexpected relation inflation or loss.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility.
 
 ##### Cypher
 ```cypher
@@ -47342,6 +47552,8 @@ STATUS: 404
 
 Return a graph-shaped payload (equivalent to SPARQL CONSTRUCT): nodes + relationships as collections.
 Objective: verify graph reconstruction/export behavior for downstream visualization, interchange, or pipeline reuse.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 ##### Cypher
 ```cypher
@@ -47398,6 +47610,8 @@ STATUS: 404
 
 Describe one node by id: its properties and outgoing/incoming relationships (and neighbour ids).
 Objective: validate entity-centric inspection and provenance-style drill-down for debugging and curation workflows.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility.
 
 ##### Cypher
 ```cypher
@@ -47499,6 +47713,8 @@ STATUS: 404
 
 Sort results (e.g. by subject, then predicate, then object) and paginate with SKIP/LIMIT.
 Objective: ensure deterministic ordering so repeated runs return stable sequences for review and auditing.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 ##### Cypher
 ```cypher
@@ -47549,6 +47765,8 @@ STATUS: 404
 
 Group by node label and count nodes per type (no explicit GROUP BY; use WITH + aggregation).
 Objective: profile class distribution and detect imbalance across entity types.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 ##### Cypher
 ```cypher
@@ -47601,6 +47819,8 @@ STATUS: 404
 
 Count nodes, count relationships, or both in one response.
 Objective: validate multi-metric aggregation in a single query to reduce API calls and keep metrics synchronized.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 ##### Cypher
 ```cypher
@@ -47659,6 +47879,140 @@ STATUS: 404
 ```
 
 # Summary
+## Test-by-test objective status table
+
+| Test | Objective | Reached? | Hypothesis |
+|---|---|---|---|
+| Test 1 – Total number of nodes | verify the global size of the graph at node level as a baseline control metric before any other evaluation. | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test 2 – Total number of relationships | verify the global size of the graph at relationship/triple level and track growth or loss across runs. | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test 3 – Nodes per label (overview) | identify the semantic classes present in the graph and confirm that expected node types are available. | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test 4 – Relationships per type | validate that key predicates exist and estimate their volume to detect missing or under-populated relations. | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test 5 – Approximate number of properties on nodes | measure metadata coverage across node attributes and identify sparse or overused properties. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility. |
+| Test 5 – Approximate number of properties on nodes | check which relationship types preserve metadata and which are being stored as bare links. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility. |
+| Test 5 – Approximate number of properties on nodes | cross-check node-label and property co-occurrence to detect uneven modelling between entity classes. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility. |
+| Test 6 – Approximate number of properties on relationships | quantify how much relational context is encoded as properties versus only as edge existence. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | confirm target database context and avoid running diagnostics against the wrong environment. | Not reached. | No valid payload for the objective; hypothesis: query/API response exceeded timeout window (performance or connectivity bottleneck). |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | obtain a high-level schema inventory to support quality and interoperability checks. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | inspect label-level property structure, expected datatypes, and mandatory flags for schema consistency. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | list the full attribute vocabulary and detect uncontrolled key proliferation. | Not reached. | No valid payload for the objective; hypothesis: query/API response exceeded timeout window (performance or connectivity bottleneck). |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | verify relational schema consistency and check whether edge-level attributes follow a stable model. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | evaluate completeness per entity type and find labels with weak metadata population. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | evaluate completeness per predicate type and identify relations missing descriptive metadata. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | detect entity classes that may be semantically empty and require enrichment. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | detect predicate classes that may be too generic or insufficiently documented for analysis. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | validate real-world datatype usage and identify type drift for the same property key. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | validate edge-property datatype consistency and detect modelling anomalies across relation types. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test A1 - Source footprint by provenance string | verify that all three expected sources are present in the graph after full ingestion. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test A2 - Fosas comunes required fields completeness | validate required mapped fields (`name/title`, `country`, and at least one location field) for mass-grave entities. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test A3 - Fosas comunes coordinate integrity (P625) | detect mass-grave records with malformed coordinate literals. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test B1 - SIDBRINT person integrity | validate that person entities include core identity fields (label and at least one temporal marker). | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test C1 - Cultura y censura document integrity | verify document-class entities and minimal descriptive metadata. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test 1 – Total number of nodes | verify the global size of the graph at node level as a baseline control metric before any other evaluation. | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test 2 – Total number of relationships | verify the global size of the graph at relationship/triple level and track growth or loss across runs. | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test 3 – Nodes per label (overview) | identify the semantic classes present in the graph and confirm that expected node types are available. | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test 4 – Relationships per type | validate that key predicates exist and estimate their volume to detect missing or under-populated relations. | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test 5 – Approximate number of properties on nodes | measure metadata coverage across node attributes and identify sparse or overused properties. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility. |
+| Test 5 – Approximate number of properties on nodes | check which relationship types preserve metadata and which are being stored as bare links. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility. |
+| Test 5 – Approximate number of properties on nodes | cross-check node-label and property co-occurrence to detect uneven modelling between entity classes. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility. |
+| Test 6 – Approximate number of properties on relationships | quantify how much relational context is encoded as properties versus only as edge existence. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | confirm target database context and avoid running diagnostics against the wrong environment. | Not reached. | No valid payload for the objective; hypothesis: query/API response exceeded timeout window (performance or connectivity bottleneck). |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | obtain a high-level schema inventory to support quality and interoperability checks. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | inspect label-level property structure, expected datatypes, and mandatory flags for schema consistency. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | list the full attribute vocabulary and detect uncontrolled key proliferation. | Not reached. | No valid payload for the objective; hypothesis: query/API response exceeded timeout window (performance or connectivity bottleneck). |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | verify relational schema consistency and check whether edge-level attributes follow a stable model. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | evaluate completeness per entity type and find labels with weak metadata population. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | evaluate completeness per predicate type and identify relations missing descriptive metadata. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | detect entity classes that may be semantically empty and require enrichment. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | detect predicate classes that may be too generic or insufficiently documented for analysis. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | validate real-world datatype usage and identify type drift for the same property key. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | validate edge-property datatype consistency and detect modelling anomalies across relation types. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test A1 - Source footprint by provenance string | verify that all three expected sources are present in the graph after full ingestion. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test A2 - Fosas comunes required fields completeness | validate required mapped fields (`name/title`, `country`, and at least one location field) for mass-grave entities. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test A3 - Fosas comunes coordinate integrity (P625) | detect mass-grave records with malformed coordinate literals. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test B1 - SIDBRINT person integrity | validate that person entities include core identity fields (label and at least one temporal marker). | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test C1 - Cultura y censura document integrity | verify document-class entities and minimal descriptive metadata. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test X1 - Cross-source duplicate candidates by normalized title | detect potential duplicate entities generated by multi-source ingest. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test X2 - Type conflict check per entity | detect nodes with unusually high class multiplicity (possible merge errors). | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test G1 - Sex/gender footprint (P21 and lexical variants) | verify that sex/gender is explicitly represented and measurable in person-like entities. | Not reached. | No valid payload for the objective; hypothesis: query/API response exceeded timeout window (performance or connectivity bottleneck). |
+| Test G2 - Missing sex/gender coverage in person entities | quantify person records lacking explicit gender/sex values (critical for bias-aware analysis). | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test G3 - Occupation/profession coverage by gender proxy | detect whether social/economic proxy fields (occupation/profession, e.g. `P106`) are unevenly populated across gender groups. | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test G4 - Social/economic-status vocabulary audit | inventory properties/values related to social or economic status to check whether this dimension is represented in the integrated graph. | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test G4 - Social/economic-status vocabulary audit | retrieve the minimal graph statement unit for structural inspection and downstream sampling. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility. |
+| Test G4 - Social/economic-status vocabulary audit | test semantic filtering capacity and verify retrieval precision for targeted terms. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility. |
+| Test G4 - Social/economic-status vocabulary audit | test stable pagination and deterministic ordering for reproducible batches and UI navigation. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility. |
+| Test G4 - Social/economic-status vocabulary audit | validate fast existence checks for conditional workflows and rule triggers. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test G4 - Social/economic-status vocabulary audit | verify class-level existence checks for domain entities used in monitoring and alerts. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility. |
+| Test G4 - Social/economic-status vocabulary audit | validate aggregate consistency for core graph magnitudes and support monitoring dashboards with reproducible totals. | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test G4 - Social/economic-status vocabulary audit | compute entity cardinality for baseline comparisons between dataset versions. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test G4 - Social/economic-status vocabulary audit | compute assertion cardinality and detect unexpected relation inflation or loss. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility. |
+| Test G4 - Social/economic-status vocabulary audit | verify graph reconstruction/export behavior for downstream visualization, interchange, or pipeline reuse. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test G4 - Social/economic-status vocabulary audit | validate entity-centric inspection and provenance-style drill-down for debugging and curation workflows. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility. |
+| Test G4 - Social/economic-status vocabulary audit | ensure deterministic ordering so repeated runs return stable sequences for review and auditing. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test G4 - Social/economic-status vocabulary audit | profile class distribution and detect imbalance across entity types. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test G4 - Social/economic-status vocabulary audit | validate multi-metric aggregation in a single query to reduce API calls and keep metrics synchronized. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test 1 – Total number of nodes | verify the global size of the graph at node level as a baseline control metric before any other evaluation. | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test 2 – Total number of relationships | verify the global size of the graph at relationship/triple level and track growth or loss across runs. | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test 3 – Nodes per label (overview) | identify the semantic classes present in the graph and confirm that expected node types are available. | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test 4 – Relationships per type | validate that key predicates exist and estimate their volume to detect missing or under-populated relations. | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test 5 – Approximate number of properties on nodes | measure metadata coverage across node attributes and identify sparse or overused properties. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility. |
+| Test 5 – Approximate number of properties on nodes | check which relationship types preserve metadata and which are being stored as bare links. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility. |
+| Test 5 – Approximate number of properties on nodes | cross-check node-label and property co-occurrence to detect uneven modelling between entity classes. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility. |
+| Test 6 – Approximate number of properties on relationships | quantify how much relational context is encoded as properties versus only as edge existence. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | confirm target database context and avoid running diagnostics against the wrong environment. | Not reached. | No valid payload for the objective; hypothesis: query/API response exceeded timeout window (performance or connectivity bottleneck). |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | obtain a high-level schema inventory to support quality and interoperability checks. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | inspect label-level property structure, expected datatypes, and mandatory flags for schema consistency. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | list the full attribute vocabulary and detect uncontrolled key proliferation. | Not reached. | No valid payload for the objective; hypothesis: query/API response exceeded timeout window (performance or connectivity bottleneck). |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | verify relational schema consistency and check whether edge-level attributes follow a stable model. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | evaluate completeness per entity type and find labels with weak metadata population. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | evaluate completeness per predicate type and identify relations missing descriptive metadata. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | detect entity classes that may be semantically empty and require enrichment. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | detect predicate classes that may be too generic or insufficiently documented for analysis. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | validate real-world datatype usage and identify type drift for the same property key. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test 7 - Database-level metadata - Interpreting "all metadata present in the knowledge base" | validate edge-property datatype consistency and detect modelling anomalies across relation types. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test A1 - Source footprint by provenance string | verify that all three expected sources are present in the graph after full ingestion. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test A2 - Fosas comunes required fields completeness | validate required mapped fields (`name/title`, `country`, and at least one location field) for mass-grave entities. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test A3 - Fosas comunes coordinate integrity (P625) | detect mass-grave records with malformed coordinate literals. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test B1 - SIDBRINT person integrity | validate that person entities include core identity fields (label and at least one temporal marker). | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test C1 - Cultura y censura document integrity | verify document-class entities and minimal descriptive metadata. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test X1 - Cross-source duplicate candidates by normalized title | detect potential duplicate entities generated by multi-source ingest. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test X2 - Type conflict check per entity | detect nodes with unusually high class multiplicity (possible merge errors). | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test G1 - Sex/gender footprint (P21 and lexical variants) | verify that sex/gender is explicitly represented and measurable in person-like entities. | Not reached. | No valid payload for the objective; hypothesis: query/API response exceeded timeout window (performance or connectivity bottleneck). |
+| Test G2 - Missing sex/gender coverage in person entities | quantify person records lacking explicit gender/sex values (critical for bias-aware analysis). | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test G3 - Occupation/profession coverage by gender proxy | detect whether social/economic proxy fields (occupation/profession, e.g. `P106`) are unevenly populated across gender groups. | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test G4 - Social/economic-status vocabulary audit | inventory properties/values related to social or economic status to check whether this dimension is represented in the integrated graph. | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test G4 - Social/economic-status vocabulary audit | retrieve the minimal graph statement unit for structural inspection and downstream sampling. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility. |
+| Test G4 - Social/economic-status vocabulary audit | test semantic filtering capacity and verify retrieval precision for targeted terms. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility. |
+| Test G4 - Social/economic-status vocabulary audit | test stable pagination and deterministic ordering for reproducible batches and UI navigation. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility. |
+| Test G4 - Social/economic-status vocabulary audit | validate fast existence checks for conditional workflows and rule triggers. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test G4 - Social/economic-status vocabulary audit | verify class-level existence checks for domain entities used in monitoring and alerts. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility. |
+| Test G4 - Social/economic-status vocabulary audit | validate aggregate consistency for core graph magnitudes and support monitoring dashboards with reproducible totals. | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test G4 - Social/economic-status vocabulary audit | compute entity cardinality for baseline comparisons between dataset versions. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test G4 - Social/economic-status vocabulary audit | compute assertion cardinality and detect unexpected relation inflation or loss. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility. |
+| Test G4 - Social/economic-status vocabulary audit | verify graph reconstruction/export behavior for downstream visualization, interchange, or pipeline reuse. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test G4 - Social/economic-status vocabulary audit | validate entity-centric inspection and provenance-style drill-down for debugging and curation workflows. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility. |
+| Test G4 - Social/economic-status vocabulary audit | ensure deterministic ordering so repeated runs return stable sequences for review and auditing. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test G4 - Social/economic-status vocabulary audit | profile class distribution and detect imbalance across entity types. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test G4 - Social/economic-status vocabulary audit | validate multi-metric aggregation in a single query to reduce API calls and keep metrics synchronized. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test X1 - Cross-source duplicate candidates by normalized title | detect potential duplicate entities generated by multi-source ingest. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test X2 - Type conflict check per entity | detect nodes with unusually high class multiplicity (possible merge errors). | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test G1 - Sex/gender footprint (P21 and lexical variants) | verify that sex/gender is explicitly represented and measurable in person-like entities. | Not reached. | No valid payload for the objective; hypothesis: query/API response exceeded timeout window (performance or connectivity bottleneck). |
+| Test G2 - Missing sex/gender coverage in person entities | quantify person records lacking explicit gender/sex values (critical for bias-aware analysis). | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test G3 - Occupation/profession coverage by gender proxy | detect whether social/economic proxy fields (occupation/profession, e.g. `P106`) are unevenly populated across gender groups. | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test G4 - Social/economic-status vocabulary audit | inventory properties/values related to social or economic status to check whether this dimension is represented in the integrated graph. | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test G4 - Social/economic-status vocabulary audit | retrieve the minimal graph statement unit for structural inspection and downstream sampling. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility. |
+| Test G4 - Social/economic-status vocabulary audit | test semantic filtering capacity and verify retrieval precision for targeted terms. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility. |
+| Test G4 - Social/economic-status vocabulary audit | test stable pagination and deterministic ordering for reproducible batches and UI navigation. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility. |
+| Test G4 - Social/economic-status vocabulary audit | validate fast existence checks for conditional workflows and rule triggers. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test G4 - Social/economic-status vocabulary audit | verify class-level existence checks for domain entities used in monitoring and alerts. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility. |
+| Test G4 - Social/economic-status vocabulary audit | validate aggregate consistency for core graph magnitudes and support monitoring dashboards with reproducible totals. | Inconclusive. | No explicit success/error payload found; hypothesis: missing traceability in recorded results. |
+| Test G4 - Social/economic-status vocabulary audit | compute entity cardinality for baseline comparisons between dataset versions. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test G4 - Social/economic-status vocabulary audit | compute assertion cardinality and detect unexpected relation inflation or loss. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility. |
+| Test G4 - Social/economic-status vocabulary audit | verify graph reconstruction/export behavior for downstream visualization, interchange, or pipeline reuse. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+| Test G4 - Social/economic-status vocabulary audit | validate entity-centric inspection and provenance-style drill-down for debugging and curation workflows. | Partially reached. | Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility. |
+| Test G4 - Social/economic-status vocabulary audit | ensure deterministic ordering so repeated runs return stable sequences for review and auditing. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test G4 - Social/economic-status vocabulary audit | profile class distribution and detect imbalance across entity types. | Not reached. | No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404. |
+| Test G4 - Social/economic-status vocabulary audit | validate multi-metric aggregation in a single query to reduce API calls and keep metrics synchronized. | Not reached. | No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500). |
+
 ## Update - Test 7 (Database-level metadata) from latest run
 
 | Query | Cypher | SPARQL | Note |
@@ -48024,6 +48378,8 @@ STATUS: 404
 ### Test X1 - Cross-source duplicate candidates by normalized title
 
 Objective: detect potential duplicate entities generated by multi-source ingest.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -48082,6 +48438,8 @@ STATUS: 404
 ### Test X2 - Type conflict check per entity
 
 Objective: detect nodes with unusually high class multiplicity (possible merge errors).
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 #### Cypher
 ```cypher
@@ -48141,6 +48499,8 @@ Purpose: evaluate whether gender/sex and social-economic signals are present and
 ### Test G1 - Sex/gender footprint (P21 and lexical variants)
 
 Objective: verify that sex/gender is explicitly represented and measurable in person-like entities.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: query/API response exceeded timeout window (performance or connectivity bottleneck).
 
 #### Cypher
 ```cypher
@@ -48256,6 +48616,8 @@ curl --fail-with-body --silent --show-error \
 ### Test G2 - Missing sex/gender coverage in person entities
 
 Objective: quantify person records lacking explicit gender/sex values (critical for bias-aware analysis).
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 #### Cypher
 ```cypher
@@ -48360,6 +48722,8 @@ curl --fail-with-body --silent --show-error \
 ### Test G3 - Occupation/profession coverage by gender proxy
 
 Objective: detect whether social/economic proxy fields (occupation/profession, e.g. `P106`) are unevenly populated across gender groups.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 #### Cypher
 ```cypher
@@ -48489,6 +48853,8 @@ curl --fail-with-body --silent --show-error \
 ### Test G4 - Social/economic-status vocabulary audit
 
 Objective: inventory properties/values related to social or economic status to check whether this dimension is represented in the integrated graph.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 #### Cypher
 ```cypher
@@ -48607,6 +48973,8 @@ curl --fail-with-body --silent --show-error \
 
 Cypher equivalent: match (subject)-[r]->(object) and return subject id, relationship type, object id.
 Objective: retrieve the minimal graph statement unit for structural inspection and downstream sampling.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 ##### Cypher
 ```cypher
@@ -48654,6 +49022,8 @@ Internal Server Error
 
 **String:** nodes whose label (name/title/text) contains a substring (case-insensitive).
 Objective: test semantic filtering capacity and verify retrieval precision for targeted terms.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: server-side execution failures (500) reduced reproducibility.
 
 ##### Cypher
 ```cypher
@@ -48708,6 +49078,8 @@ Internal Server Error
 ## 3. LIMIT / OFFSET: result pagination
 
 Objective: test stable pagination and deterministic ordering for reproducible batches and UI navigation.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility.
 
 ##### Cypher
 ```cypher
@@ -48762,6 +49134,8 @@ STATUS: 404
 
 Returns one row with a boolean: does the pattern exist?
 Objective: validate fast existence checks for conditional workflows and rule triggers.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 ##### Cypher
 ```cypher
@@ -48812,6 +49186,8 @@ STATUS: 404
 #### 2. Basic ASK: e.g. “exists any MassGrave?”
 
 Objective: verify class-level existence checks for domain entities used in monitoring and alerts.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility.
 
 ##### Cypher
 ```cypher
@@ -48864,6 +49240,8 @@ STATUS: 404
 ## 5. COUNT queries (extended)
 
 Objective: validate aggregate consistency for core graph magnitudes and support monitoring dashboards with reproducible totals.
+Assessment: Inconclusive.
+Hypothesis: No explicit success/error payload found; hypothesis: missing traceability in recorded results.
 
 #### 1. Custom COUNT syntax: COUNT(?variable)
 
@@ -48872,6 +49250,8 @@ Cypher equivalent: `count(n)` or `count(*)` for the bound variable / pattern.
 **Count all nodes:**
 
 Objective: compute entity cardinality for baseline comparisons between dataset versions.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 ##### Cypher
 ```cypher
@@ -48922,6 +49302,8 @@ STATUS: 404
 **Count relationships (triples):**
 
 Objective: compute assertion cardinality and detect unexpected relation inflation or loss.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility.
 
 ##### Cypher
 ```cypher
@@ -48969,6 +49351,8 @@ STATUS: 404
 
 Return a graph-shaped payload (equivalent to SPARQL CONSTRUCT): nodes + relationships as collections.
 Objective: verify graph reconstruction/export behavior for downstream visualization, interchange, or pipeline reuse.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 ##### Cypher
 ```cypher
@@ -49025,6 +49409,8 @@ STATUS: 404
 
 Describe one node by id: its properties and outgoing/incoming relationships (and neighbour ids).
 Objective: validate entity-centric inspection and provenance-style drill-down for debugging and curation workflows.
+Assessment: Partially reached.
+Hypothesis: Some evidence is present, but failures coexist; hypothesis: route/context mismatch (404) reduced reproducibility.
 
 ##### Cypher
 ```cypher
@@ -49126,6 +49512,8 @@ STATUS: 404
 
 Sort results (e.g. by subject, then predicate, then object) and paginate with SKIP/LIMIT.
 Objective: ensure deterministic ordering so repeated runs return stable sequences for review and auditing.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 ##### Cypher
 ```cypher
@@ -49176,6 +49564,8 @@ STATUS: 404
 
 Group by node label and count nodes per type (no explicit GROUP BY; use WITH + aggregation).
 Objective: profile class distribution and detect imbalance across entity types.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: endpoint route, context, or authorization mismatch returned 404.
 
 ##### Cypher
 ```cypher
@@ -49228,6 +49618,8 @@ STATUS: 404
 
 Count nodes, count relationships, or both in one response.
 Objective: validate multi-metric aggregation in a single query to reduce API calls and keep metrics synchronized.
+Assessment: Not reached.
+Hypothesis: No valid payload for the objective; hypothesis: combined routing/context issues (404) and server execution failures (500).
 
 ##### Cypher
 ```cypher
@@ -49285,7 +49677,7 @@ STATUS: 404
 404 page not found
 ```
 
-# Summary
+# Summary1
 ## Update - Test 7 (Database-level metadata) from latest run
 
 | Query | Cypher | SPARQL | Note |
